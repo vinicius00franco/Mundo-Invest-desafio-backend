@@ -39,7 +39,7 @@ func (t *Transacao) Rollback() error {
 }
 
 // Banco retorna a conexão de banco de dados da transação
-func (t *Transacao) Banco() *sql.DB {
+func (t *Transacao) Banco() *sql.Tx {
 	return t.tx
 }
 
