@@ -8,16 +8,16 @@ import (
 
 // Cliente representa a entidade Cliente do contexto de gestão de clientes
 type Cliente struct {
-	IdentificadorInterno   int64     // gcl_cli_int
-	IdentificadorExterno   string    // gcl_cli_ext
-	Nome                   string    // gcl_cli_nom
-	Email                  string    // gcl_cli_ema
-	ValorPatrimonio        float64   // gcl_cli_pat
-	TipoSolicitacao        string    // gcl_cli_tso
-	Status                 string    // gcl_cli_stc
-	NivelPrioridade        string    // gcl_cli_npr
-	DataCriacao            time.Time // gcl_cli_dcr
-	DataAtualizacao        time.Time // gcl_cli_dat
+	IdentificadorInterno int64     // gcl_cli_int
+	IdentificadorExterno string    // gcl_cli_ext
+	Nome                 string    // gcl_cli_nom
+	Email                string    // gcl_cli_ema
+	ValorPatrimonio      float64   // gcl_cli_pat
+	TipoSolicitacao      string    // gcl_cli_tso
+	Status               string    // gcl_cli_stc
+	NivelPrioridade      string    // gcl_cli_npr
+	DataCriacao          time.Time // gcl_cli_dcr
+	DataAtualizacao      time.Time // gcl_cli_dat
 }
 
 // ClienteRepository define a interface para operações de persistência de clientes
@@ -79,7 +79,7 @@ func (r *clienteRepository) BuscarPorIdentificadorInterno(identificadorInterno i
 		SELECT 
 			gcl_cli_int, gcl_cli_ext, gcl_cli_nom, gcl_cli_ema, 
 			gcl_cli_pat, gcl_cli_tso, gcl_cli_stc, gcl_cli_npr, 
-			gcl_cli_dcr, gcl_cli_dat
+			gcl_cli_dcr, COALESCE(gcl_cli_dat, gcl_cli_dcr)
 		FROM gestao_clientes.cliente
 		WHERE gcl_cli_int = $1
 	`
@@ -115,7 +115,7 @@ func (r *clienteRepository) BuscarPorEmail(email string) (*Cliente, error) {
 		SELECT 
 			gcl_cli_int, gcl_cli_ext, gcl_cli_nom, gcl_cli_ema, 
 			gcl_cli_pat, gcl_cli_tso, gcl_cli_stc, gcl_cli_npr, 
-			gcl_cli_dcr, gcl_cli_dat
+			gcl_cli_dcr, COALESCE(gcl_cli_dat, gcl_cli_dcr)
 		FROM gestao_clientes.cliente
 		WHERE gcl_cli_ema = $1
 	`
@@ -151,7 +151,7 @@ func (r *clienteRepository) BuscarPorIdentificadorExterno(identificadorExterno s
 		SELECT 
 			gcl_cli_int, gcl_cli_ext, gcl_cli_nom, gcl_cli_ema, 
 			gcl_cli_pat, gcl_cli_tso, gcl_cli_stc, gcl_cli_npr, 
-			gcl_cli_dcr, gcl_cli_dat
+			gcl_cli_dcr, COALESCE(gcl_cli_dat, gcl_cli_dcr)
 		FROM gestao_clientes.cliente
 		WHERE gcl_cli_ext = $1
 	`

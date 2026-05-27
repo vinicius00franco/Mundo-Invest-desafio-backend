@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/MundoInvest/backend/internal/gestao_clientes"
+	"github.com/MundoInvest/backend/internal/processamento_eventos"
 	"github.com/MundoInvest/backend/internal/shared/database"
 )
 
@@ -27,11 +28,15 @@ func main() {
 	// Criar controller de clientes
 	clienteController := gestao_clientes.NovoClienteControllerComDB(db, pipeID)
 
+	// Criar controller de webhooks
+	webhookController := processamento_eventos.NovoWebhookControllerComDB(db)
+
 	// Configurar router HTTP
 	mux := http.NewServeMux()
 
 	// Registrar rotas
 	clienteController.RegistrarRotas(mux)
+	webhookController.RegistrarRotas(mux)
 
 	// Configurar servidor
 	port := os.Getenv("PORT")
@@ -41,6 +46,7 @@ func main() {
 
 	log.Printf("Servidor Mundo Invest iniciado na porta %s", port)
 	log.Printf("Endpoint POST /clientes disponível")
+	log.Printf("Endpoint POST /webhooks/pipefy/card-updated disponível")
 
 	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatalf("Erro ao iniciar servidor: %v", err)
