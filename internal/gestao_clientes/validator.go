@@ -3,7 +3,6 @@ package gestao_clientes
 import (
 	"errors"
 	"fmt"
-	"net/mail"
 	"strings"
 )
 
@@ -15,45 +14,10 @@ type CriarClienteRequest struct {
 	TipoSolicitacao string  `json:"tipo_solicitacao"`
 }
 
-// ValidarCriarClienteRequest valida o payload de criação de cliente
+// ValidarCriarClienteRequest valida o payload de criação de cliente usando Strategy Pattern
 func ValidarCriarClienteRequest(request CriarClienteRequest) error {
-	var erros []string
-
-	// Validar nome
-	if strings.TrimSpace(request.Nome) == "" {
-		erros = append(erros, "nome é obrigatório")
-	}
-
-	// Validar email
-	if strings.TrimSpace(request.Email) == "" {
-		erros = append(erros, "email é obrigatório")
-	} else {
-		if !isValidEmail(request.Email) {
-			erros = append(erros, "email inválido")
-		}
-	}
-
-	// Validar tipo_solicitacao
-	if strings.TrimSpace(request.TipoSolicitacao) == "" {
-		erros = append(erros, "tipo_solicitacao é obrigatório")
-	}
-
-	// Validar valor_patrimonio
-	if request.ValorPatrimonio <= 0 {
-		erros = append(erros, "valor_patrimonio deve ser positivo")
-	}
-
-	if len(erros) > 0 {
-		return errors.New(strings.Join(erros, "; "))
-	}
-
-	return nil
-}
-
-// isValidEmail valida o formato de email
-func isValidEmail(email string) bool {
-	_, err := mail.ParseAddress(email)
-	return err == nil
+	strategy := NewClienteValidationStrategy()
+	return strategy.Validate(request)
 }
 
 // ValidarEmail valida um email individual
