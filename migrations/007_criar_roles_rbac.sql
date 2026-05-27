@@ -4,19 +4,44 @@
 -- Objetivo: Implementar controle de acesso baseado em roles
 
 -- Criar role para leitura de dados de clientes
-CREATE ROLE IF NOT EXISTS gestao_clientes_read WITH NOLOGIN;
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'gestao_clientes_read') THEN
+        CREATE ROLE gestao_clientes_read WITH NOLOGIN;
+    END IF;
+END $$;
 
 -- Criar role para escrita de dados de clientes
-CREATE ROLE IF NOT EXISTS gestao_clientes_write WITH NOLOGIN;
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'gestao_clientes_write') THEN
+        CREATE ROLE gestao_clientes_write WITH NOLOGIN;
+    END IF;
+END $$;
 
 -- Criar role para escrita de eventos de processamento
-CREATE ROLE IF NOT EXISTS processamento_eventos_write WITH NOLOGIN;
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'processamento_eventos_write') THEN
+        CREATE ROLE processamento_eventos_write WITH NOLOGIN;
+    END IF;
+END $$;
 
 -- Criar role para operações de backup
-CREATE ROLE IF NOT EXISTS backup_operator WITH NOLOGIN;
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'backup_operator') THEN
+        CREATE ROLE backup_operator WITH NOLOGIN;
+    END IF;
+END $$;
 
 -- Criar role para administradores do banco
-CREATE ROLE IF NOT EXISTS dba_admin WITH NOLOGIN;
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'dba_admin') THEN
+        CREATE ROLE dba_admin WITH NOLOGIN;
+    END IF;
+END $$;
 
 -- Comentários das roles
 COMMENT ON ROLE gestao_clientes_read IS 'Role para leitura de dados do contexto de gestão de clientes';
