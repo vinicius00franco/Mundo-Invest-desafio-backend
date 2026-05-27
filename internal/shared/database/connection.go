@@ -4,18 +4,19 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 
 	_ "github.com/lib/pq"
 )
 
 // ConfiguracaoBancoDados representa as configurações de conexão com o banco de dados
 type ConfiguracaoBancoDados struct {
-	Host     string
-	Port     string
-	Usuario  string
-	Senha    string
-	Banco    string
-	SSLMode  string
+	Host    string
+	Port    string
+	Usuario string
+	Senha   string
+	Banco   string
+	SSLMode string
 }
 
 // NovoBancoDados cria uma nova conexão com o banco de dados PostgreSQL
@@ -44,4 +45,26 @@ func NovoBancoDados(config ConfiguracaoBancoDados) (*sql.DB, error) {
 
 	log.Println("Conexão com banco de dados estabelecida com sucesso")
 	return banco, nil
+}
+
+// NovaConexao cria uma nova conexão com o banco de dados usando variáveis de ambiente
+func NovaConexao() (*sql.DB, error) {
+	config := ConfiguracaoBancoDados{
+		Host:    getEnv("DB_HOST", "localhost"),
+		Port:    getEnv("DB_PORT", "5432"),
+		Usuario: getEnv("DB_USER", "postgres"),
+		Senha:   getEnv("DB_PASSWORD", "postgres"),
+		Banco:   getEnv("DB_NAME", "mundo_invest"),
+		SSLMode: getEnv("DB_SSLMODE", "disable"),
+	}
+
+	return NovoBancoDados(config)
+}
+
+// getEnv obtém valor de variável de ambiente ou retorna valor padrão
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }
