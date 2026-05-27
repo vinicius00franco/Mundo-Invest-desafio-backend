@@ -16,22 +16,29 @@ type ClienteService interface {
 
 // clienteService implementa a interface ClienteService
 type clienteService struct {
-	repository   ClienteRepository
-	pipefyClient integracao_pipefy.PipefyGraphQLClient
-	pipeID       string
+	repository      ClienteRepository
+	pipefyService   integracao_pipefy.PipefyIntegrationService
+	pipeID          string
+	eventDispatcher dominio.EventDispatcher
 }
 
 // NovoClienteService cria uma nova instância de ClienteService
-func NovoClienteService(repository ClienteRepository, pipefyClient integracao_pipefy.PipefyGraphQLClient, pipeID string) ClienteService {
+func NovoClienteService(
+	repository ClienteRepository,
+	pipefyService integracao_pipefy.PipefyIntegrationService,
+	pipeID string,
+	eventDispatcher dominio.EventDispatcher,
+) ClienteService {
 	return &clienteService{
-		repository:   repository,
-		pipefyClient: pipefyClient,
-		pipeID:       pipeID,
+		repository:      repository,
+		pipefyService:   pipefyService,
+		pipeID:          pipeID,
+		eventDispatcher: eventDispatcher,
 	}
 }
 
 // CriarCliente cria um novo cliente seguindo as regras de negócio
-func (s *clienteService) CriarCliente(request CriarClienteRequest) (*Cliente, error) {
+func (s *clienteService) CriarCliente(ctx context.Context, request CriarClienteRequest) (*Cliente, error) {
 	// Validar o payload
 	if err := ValidarCriarClienteRequest(request); err != nil {
 		return nil, fmt.Errorf("erro de validação: %w", err)
@@ -59,34 +66,43 @@ func (s *clienteService) CriarCliente(request CriarClienteRequest) (*Cliente, er
 		return nil, fmt.Errorf("erro ao salvar cliente: %w", err)
 	}
 
-	// Estruturar mutation createCard usando o cliente Pipefy
-	fieldsAttributes := []integracao_pipefy.FieldAttribute{
-		{
-			FieldID: "nome_field_id",
-			Values:  []string{clienteSalvo.Nome},
-		},
-		{
-			FieldID: "email_field_id",
-			Values:  []string{clienteSalvo.Email},
-		},
-		{
-			FieldID: "patrimonio_field_id",
-			Values:  []string{fmt.Sprintf("%.2f", clienteSalvo.ValorPatrimonio)},
-		},
-		{
-			FieldID: "tipo_solicitacao_field_id",
-			Values:  []string{clienteSalvo.TipoSolicitacao},
-		},
+	// Integrar com Pipefy usando o serviço dedicado
+	cardData := integracao_pipefy.CardClienteData{
+		Nome:            clienteSalvo.Nome,
+		Email:           clienteSalvo.Email,
+		ValorPatrimonio: clienteSalvo.ValorPatrimonio,
+		TipoSolicitacao: clienteSalvo.TipoSolicitacao,
 	}
 
-	mutation, err := s.pipefyClient.EstruturarMutationCreateCard(s.pipeID, fieldsAttributes)
+	cardID, err := s.pipefyService.CriarCardCliente(ctx, s.pipeID, cardData)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao estruturar mutation createCard: %w", err)
+		return nil, fmt.Errorf("erro ao criar card no Pipefy: %w", err)
 	}
 
-	// Simular envio da mutation (sem requisição real)
-	// Em produção, aqui seria enviada a mutation para o Pipefy
-	_, _ = s.pipefyClient.ExecutarMutation(mutation)
+	// Atualizar identificador externo com o card ID retornado
+	clienteSalvo.IdentificadorExterno = cardID
+	if err := s.repository.Atualizar(*clienteSalvo); err != nil {
+		return nil, fmt.Errorf("erro ao atualizar cliente com card ID: %w", err)
+	}
+
+	// Emitir evento de domínio
+	if s.eventDispatcher != nil {
+		evento := dominio.NewClienteCriadoEvent(
+			fmt.Sprintf("%d", clienteSalvo.IdentificadorInterno),
+			dominio.ClienteCriadoData{
+				ClienteID:       fmt.Sprintf("%d", clienteSalvo.IdentificadorInterno),
+				Nome:            clienteSalvo.Nome,
+				Email:           clienteSalvo.Email,
+				ValorPatrimonio: clienteSalvo.ValorPatrimonio,
+				TipoSolicitacao: clienteSalvo.TipoSolicitacao,
+				DataCriacao:     clienteSalvo.DataCriacao,
+			},
+		)
+		if err := s.eventDispatcher.Dispatch(ctx, evento); err != nil {
+			// Log error mas não falhar a operação
+			fmt.Printf("Erro ao despachar evento: %v\n", err)
+		}
+	}
 
 	return clienteSalvo, nil
 }

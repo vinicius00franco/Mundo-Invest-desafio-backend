@@ -45,7 +45,7 @@ func (c *ClienteController) CriarClienteHandler(w http.ResponseWriter, r *http.R
 	}
 
 	// Chamar o serviço para criar o cliente
-	cliente, err := c.service.CriarCliente(request)
+	cliente, err := c.service.CriarCliente(r.Context(), request)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Erro ao criar cliente: %s", err.Error()), http.StatusInternalServerError)
 		return
@@ -82,6 +82,14 @@ func (c *ClienteController) RegistrarRotas(mux *http.ServeMux) {
 func NovoClienteControllerComDB(db *sql.DB, pipeID string) *ClienteController {
 	repository := NovoClienteRepository(db)
 	pipefyClient := integracao_pipefy.NovoPipefyGraphQLClient("", "")
-	service := NovoClienteService(repository, pipefyClient, pipeID)
+	pipefyService := integracao_pipefy.NewPipefyIntegrationService(pipefyClient)
+	eventDispatcher := dominio.NewInMemoryEventDispatcher()
+
+	// Registrar handlers de eventos
+	eventDispatcher.Register(dominio.NewLoggingEventHandler())
+	eventDispatcher.Register(dominio.NewClienteCriadoEventHandler(eventDispatcher))
+	eventDispatcher.Register(dominio.NewClientePrioridadeCalculadaEventHandler())
+
+	service := NovoClienteService(repository, pipefyService, pipeID, eventDispatcher)
 	return NovoClienteController(service)
 }
