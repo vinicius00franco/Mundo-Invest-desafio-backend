@@ -5,7 +5,8 @@
 
 # Configurações
 BASE_URL="http://localhost:8080"
-OUTPUT_DIR="./scripts/exports"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OUTPUT_DIR="${SCRIPT_DIR}/../../exports"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 OUTPUT_FILE="${OUTPUT_DIR}/cenarios_falha_${TIMESTAMP}.txt"
 
@@ -70,58 +71,62 @@ executar_teste() {
 }
 
 # Cenário 1: Criar cliente sem campo cliente_nome
-PAYLOAD1='{
-  "email": "joao.silva@example.com",
-  "tipo_solicitacao": "Atualização cadastral",
-  "valor_patrimonio": 250000
-}'
+UNIQUE_EMAIL="joao.silha.${TIMESTAMP}@example.com"
+PAYLOAD1="{
+  \"email\": \"${UNIQUE_EMAIL}\",
+  \"tipoSolicitacao\": \"Atualização cadastral\",
+  \"valorPatrimonio\": 250000
+}"
 executar_teste "CENÁRIO 1: Criar cliente sem campo cliente_nome" \
   "Tentar criar cliente sem fornecer o campo cliente_nome" \
   "$PAYLOAD1" \
   "400"
 
-# Cenário 2: Criar cliente sem campo tipo_solicitacao
-PAYLOAD2='{
-  "nome": "João Silva",
-  "email": "joao.silva@example.com",
-  "valor_patrimonio": 250000
-}'
-executar_teste "CENÁRIO 2: Criar cliente sem campo tipo_solicitacao" \
-  "Tentar criar cliente sem fornecer o campo tipo_solicitacao" \
+# Cenário 2: Criar cliente sem campo tipoSolicitacao
+UNIQUE_EMAIL2="joao.silva2.${TIMESTAMP}@example.com"
+PAYLOAD2="{
+  \"nome\": \"João Silva\",
+  \"email\": \"${UNIQUE_EMAIL2}\",
+  \"valorPatrimonio\": 250000
+}"
+executar_teste "CENÁRIO 2: Criar cliente sem campo tipoSolicitacao" \
+  "Tentar criar cliente sem fornecer o campo tipoSolicitacao" \
   "$PAYLOAD2" \
   "400"
 
-# Cenário 3: Criar cliente sem campo valor_patrimonio
-PAYLOAD3='{
-  "nome": "João Silva",
-  "email": "joao.silva@example.com",
-  "tipo_solicitacao": "Atualização cadastral"
-}'
-executar_teste "CENÁRIO 3: Criar cliente sem campo valor_patrimonio" \
-  "Tentar criar cliente sem fornecer o campo valor_patrimonio" \
+# Cenário 3: Criar cliente sem campo valorPatrimonio
+UNIQUE_EMAIL3="joao.silva3.${TIMESTAMP}@example.com"
+PAYLOAD3="{
+  \"nome\": \"João Silva\",
+  \"email\": \"${UNIQUE_EMAIL3}\",
+  \"tipoSolicitacao\": \"Atualização cadastral\"
+}"
+executar_teste "CENÁRIO 3: Criar cliente sem campo valorPatrimonio" \
+  "Tentar criar cliente sem fornecer o campo valorPatrimonio" \
   "$PAYLOAD3" \
   "400"
 
-# Cenário 4: Criar cliente sem campo cliente_email
+# Cenário 4: Criar cliente sem campo email
 PAYLOAD4='{
   "nome": "João Silva",
-  "tipo_solicitacao": "Atualização cadastral",
-  "valor_patrimonio": 250000
+  "tipoSolicitacao": "Atualização cadastral",
+  "valorPatrimonio": 250000
 }'
-executar_teste "CENÁRIO 4: Criar cliente sem campo cliente_email" \
-  "Tentar criar cliente sem fornecer o campo cliente_email" \
+executar_teste "CENÁRIO 4: Criar cliente sem campo email" \
+  "Tentar criar cliente sem fornecer o campo email" \
   "$PAYLOAD4" \
   "400"
 
 # Cenário 5: Criar cliente com erro de banco de dados
 # Nota: Este cenário requer que o banco de dados esteja indisponível
 # Para testar, pare o container do PostgreSQL antes de executar este teste
-PAYLOAD5='{
-  "nome": "João Silva",
-  "email": "joao.silva@example.com",
-  "tipo_solicitacao": "Atualização cadastral",
-  "valor_patrimonio": 250000
-}'
+UNIQUE_EMAIL5="joao.silva5.${TIMESTAMP}@example.com"
+PAYLOAD5="{
+  \"nome\": \"João Silva\",
+  \"email\": \"${UNIQUE_EMAIL5}\",
+  \"tipoSolicitacao\": \"Atualização cadastral\",
+  \"valorPatrimonio\": 250000
+}"
 echo "=== CENÁRIO 5: Criar cliente com erro de banco de dados ===" >> "$OUTPUT_FILE"
 echo "Descrição: Tentar criar cliente quando banco de dados está indisponível" >> "$OUTPUT_FILE"
 echo "Nota: Este cenário requer que o banco de dados esteja parado" >> "$OUTPUT_FILE"

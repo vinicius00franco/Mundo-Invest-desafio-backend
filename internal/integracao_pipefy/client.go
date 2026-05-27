@@ -14,7 +14,7 @@ type PipefyGraphQLClient interface {
 
 // FieldAttribute representa um atributo de campo para mutations do Pipefy
 type FieldAttribute struct {
-	FieldID string   `json:"field_id"`
+	FieldID string   `json:"fieldId"`
 	Values  []string `json:"values"`
 }
 

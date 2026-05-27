@@ -1,6 +1,6 @@
 ========================================
 TESTES DE CENÁRIOS DE SUCESSO
-Data: qua 27 mai 2026 12:57:47 -03
+Data: qua 27 mai 2026 14:52:44 -03
 ========================================
 
 === CENÁRIO 1: Criar cliente com dados válidos ===
@@ -9,9 +9,9 @@ Descrição: Criar um novo cliente com todos os campos obrigatórios preenchidos
 Payload enviado:
 {
   "nome": "João Silva",
-  "email": "joao.silva@example.com",
-  "tipo_solicitacao": "Atualização cadastral",
-  "valor_patrimonio": 250000
+  "email": "joao.silva.20260527_145244@example.com",
+  "tipoSolicitacao": "Atualização cadastral",
+  "valorPatrimonio": 250000
 }
 
 Requisição: POST http://localhost:8080/clientes
@@ -20,14 +20,14 @@ Código HTTP: 201
 Resposta JSON:
 {
   "mensagem": "Cliente criado com sucesso",
-  "identificadorInterno": 45,
-  "identificadorExterno": "card_1779897467",
+  "identificadorInterno": 75,
+  "identificadorExterno": "card_1779904364",
   "nome": "João Silva",
-  "email": "joao.silva@example.com",
+  "email": "joao.silva.20260527_145244@example.com",
   "valorPatrimonio": 250000,
   "tipoSolicitacao": "Atualização cadastral",
   "status": "Aguardando Análise",
-  "dataCriacao": "2026-05-27T15:57:47.2609Z"
+  "dataCriacao": "2026-05-27T17:52:44.916091Z"
 }
 
 Verificações:
@@ -39,5 +39,5 @@ Verificações:
 
 ========================================
 FIM DOS TESTES DE SUCESSO
-Resultado salvo em: ./scripts/exports/cenarios_sucesso_20260527_125747.txt
+Resultado salvo em: /home/vinicius/.windsurf/worktrees/MundoInvest/MundoInvest-dcd16b68/scripts/integration/sucesso/../../exports/cenarios_sucesso_20260527_145244.txt
 ========================================

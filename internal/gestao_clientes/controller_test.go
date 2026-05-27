@@ -151,8 +151,8 @@ func TestCriarClienteHandler_CampoObrigatorioTipoSolicitacao(t *testing.T) {
 		t.Errorf("Status code esperado %d, obtido %d", http.StatusBadRequest, w.Code)
 	}
 
-	if !containsString(w.Body.String(), "tipo_solicitacao") {
-		t.Errorf("Erro esperado contendo 'tipo_solicitacao', obtido: %s", w.Body.String())
+	if !containsString(w.Body.String(), "tipoSolicitacao") {
+		t.Errorf("Erro esperado contendo 'tipoSolicitacao', obtido: %s", w.Body.String())
 	}
 }
 
@@ -180,8 +180,8 @@ func TestCriarClienteHandler_CampoObrigatorioValorPatrimonio(t *testing.T) {
 		t.Errorf("Status code esperado %d, obtido %d", http.StatusBadRequest, w.Code)
 	}
 
-	if !containsString(w.Body.String(), "valor_patrimonio") {
-		t.Errorf("Erro esperado contendo 'valor_patrimonio', obtido: %s", w.Body.String())
+	if !containsString(w.Body.String(), "valorPatrimonio") {
+		t.Errorf("Erro esperado contendo 'valorPatrimonio', obtido: %s", w.Body.String())
 	}
 }
 
@@ -240,8 +240,8 @@ func TestCriarClienteHandler_PatrimonioNegativo(t *testing.T) {
 		t.Errorf("Status code esperado %d, obtido %d", http.StatusBadRequest, w.Code)
 	}
 
-	if !containsString(w.Body.String(), "valor_patrimonio") {
-		t.Errorf("Erro esperado contendo 'valor_patrimonio', obtido: %s", w.Body.String())
+	if !containsString(w.Body.String(), "valorPatrimonio") {
+		t.Errorf("Erro esperado contendo 'valorPatrimonio', obtido: %s", w.Body.String())
 	}
 }
 
@@ -270,8 +270,8 @@ func TestCriarClienteHandler_PatrimonioZero(t *testing.T) {
 		t.Errorf("Status code esperado %d, obtido %d", http.StatusBadRequest, w.Code)
 	}
 
-	if !containsString(w.Body.String(), "valor_patrimonio") {
-		t.Errorf("Erro esperado contendo 'valor_patrimonio', obtido: %s", w.Body.String())
+	if !containsString(w.Body.String(), "valorPatrimonio") {
+		t.Errorf("Erro esperado contendo 'valorPatrimonio', obtido: %s", w.Body.String())
 	}
 }
 

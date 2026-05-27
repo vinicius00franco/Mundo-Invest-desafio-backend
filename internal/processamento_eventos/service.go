@@ -88,6 +88,7 @@ func (s *webhookService) ProcessarWebhook(ctx context.Context, request WebhookRe
 			Values:  []string{nivelPrioridade},
 		},
 	}
+	// NOTA: FieldIDs são identificadores de campos do Pipefy (snake_case) e devem ser configurados conforme o setup do pipe
 
 	mutation, err := s.pipefyClient.EstruturarMutationUpdateCard(request.IdentificadorCard, fieldsAttributes)
 	if err != nil {

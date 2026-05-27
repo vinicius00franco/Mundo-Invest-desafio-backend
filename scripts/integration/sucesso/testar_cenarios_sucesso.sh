@@ -5,7 +5,8 @@
 
 # Configurações
 BASE_URL="http://localhost:8080"
-OUTPUT_DIR="./scripts/exports"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OUTPUT_DIR="${SCRIPT_DIR}/../../exports"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 OUTPUT_FILE="${OUTPUT_DIR}/cenarios_sucesso_${TIMESTAMP}.txt"
 
@@ -24,12 +25,14 @@ echo "=== CENÁRIO 1: Criar cliente com dados válidos ===" >> "$OUTPUT_FILE"
 echo "Descrição: Criar um novo cliente com todos os campos obrigatórios preenchidos corretamente" >> "$OUTPUT_FILE"
 echo "" >> "$OUTPUT_FILE"
 
-PAYLOAD='{
-  "nome": "João Silva",
-  "email": "joao.silva@example.com",
-  "tipo_solicitacao": "Atualização cadastral",
-  "valor_patrimonio": 250000
-}'
+# Gerar email único para evitar conflitos
+UNIQUE_EMAIL="joao.silva.${TIMESTAMP}@example.com"
+PAYLOAD="{
+  \"nome\": \"João Silva\",
+  \"email\": \"${UNIQUE_EMAIL}\",
+  \"tipoSolicitacao\": \"Atualização cadastral\",
+  \"valorPatrimonio\": 250000
+}"
 
 echo "Payload enviado:" >> "$OUTPUT_FILE"
 echo "$PAYLOAD" >> "$OUTPUT_FILE"

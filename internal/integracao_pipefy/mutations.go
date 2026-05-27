@@ -18,6 +18,7 @@ func NovoMutations(client PipefyGraphQLClient) *Mutations {
 
 // CreateCardMutation cria a mutation para criar um card no Pipefy
 // Fonte: https://api-docs.pipefy.com/reference/mutations/#createcard
+// NOTA: FieldIDs são identificadores de campos do Pipefy e devem ser configurados conforme o setup do pipe
 func (m *Mutations) CreateCardMutation(pipeID string, nome, email, tipoSolicitacao string, valorPatrimonio float64) (string, error) {
 	fieldsAttributes := []FieldAttribute{
 		{
@@ -43,6 +44,7 @@ func (m *Mutations) CreateCardMutation(pipeID string, nome, email, tipoSolicitac
 
 // UpdateCardMutation cria a mutation para atualizar um card no Pipefy
 // Fonte: https://api-docs.pipefy.com/reference/mutations/#updatecard
+// NOTA: FieldIDs são identificadores de campos do Pipefy e devem ser configurados conforme o setup do pipe
 func (m *Mutations) UpdateCardMutation(cardID string, nivelPrioridade string) (string, error) {
 	fieldsAttributes := []FieldAttribute{
 		{

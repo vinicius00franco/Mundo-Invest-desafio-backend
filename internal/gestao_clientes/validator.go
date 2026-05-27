@@ -11,8 +11,8 @@ import (
 type CriarClienteRequest struct {
 	Nome            string  `json:"nome"`
 	Email           string  `json:"email"`
-	ValorPatrimonio float64 `json:"valor_patrimonio"`
-	TipoSolicitacao string  `json:"tipo_solicitacao"`
+	ValorPatrimonio float64 `json:"valorPatrimonio"`
+	TipoSolicitacao string  `json:"tipoSolicitacao"`
 }
 
 // ValidarCriarClienteRequest valida o payload de criação de cliente usando Strategy Pattern
@@ -66,11 +66,11 @@ func ValidarCriarClienteRequestDetalhado(request CriarClienteRequest) []*ErroVal
 	}
 
 	if strings.TrimSpace(request.TipoSolicitacao) == "" {
-		erros = append(erros, NewErroValidacao("tipo_solicitacao", "tipo_solicitacao é obrigatório"))
+		erros = append(erros, NewErroValidacao("tipoSolicitacao", "tipoSolicitacao é obrigatório"))
 	}
 
 	if request.ValorPatrimonio <= 0 {
-		erros = append(erros, NewErroValidacao("valor_patrimonio", "valor_patrimonio deve ser positivo"))
+		erros = append(erros, NewErroValidacao("valorPatrimonio", "valorPatrimonio deve ser positivo"))
 	}
 
 	return erros

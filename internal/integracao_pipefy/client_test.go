@@ -75,6 +75,7 @@ func TestPipefyGraphQLClient_EstruturarMutationUpdateCard(t *testing.T) {
 				{FieldID: "nivel_prioridade_field_id", Values: []string{"prioridade_alta"}},
 			},
 			esperadoErro: false,
+			// NOTA: FieldIDs são identificadores de campos do Pipefy (snake_case) e devem ser configurados conforme o setup do pipe
 		},
 		{
 			name:         "Card ID vazio",

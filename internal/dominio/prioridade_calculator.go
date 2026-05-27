@@ -25,8 +25,8 @@ func NovoPrioridadeCalculator(cfg *config.Config) PrioridadeCalculator {
 
 // CalcularNivelPrioridade calcula o nível de prioridade baseado no valor do patrimônio
 // Regras de negócio:
-// - valor_patrimonio >= limite configurado → nivel_prioridade_alta
-// - valor_patrimonio < limite configurado → nivel_prioridade_normal
+// - valorPatrimonio >= limite configurado → nivelPrioridadeAlta
+// - valorPatrimonio < limite configurado → nivelPrioridadeNormal
 func (p *prioridadeCalculator) CalcularNivelPrioridade(valorPatrimonio float64) string {
 	if valorPatrimonio >= p.config.Business.LimitePrioridadeAlta {
 		return PrioridadeAlta

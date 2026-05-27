@@ -158,8 +158,8 @@ curl -X POST http://localhost:8080/clientes \
   -d '{
     "nome": "João Silva",
     "email": "joao.silva@example.com",
-    "tipo_solicitacao": "abertura_conta",
-    "valor_patrimonio": 150000.00
+    "tipoSolicitacao": "abertura_conta",
+    "valorPatrimonio": 150000.00
   }'
 ```
 
@@ -167,14 +167,14 @@ curl -X POST http://localhost:8080/clientes \
 ```json
 {
   "mensagem": "Cliente criado com sucesso",
-  "identificador_interno": 1,
-  "identificador_externo": "card_123",
+  "identificadorInterno": 1,
+  "identificadorExterno": "card_123",
   "nome": "João Silva",
   "email": "joao.silva@example.com",
-  "valor_patrimonio": 150000.00,
-  "tipo_solicitacao": "abertura_conta",
+  "valorPatrimonio": 150000.00,
+  "tipoSolicitacao": "abertura_conta",
   "status": "Aguardando Análise",
-  "data_criacao": "2026-05-27T10:00:00Z"
+  "dataCriacao": "2026-05-27T10:00:00Z"
 }
 ```
 
@@ -187,10 +187,10 @@ Processa webhooks do Pipefy de forma idempotente.
 curl -X POST http://localhost:8080/webhooks/pipefy/card-updated \
   -H "Content-Type: application/json" \
   -d '{
-    "identificador_evento": "evt_12345",
-    "identificador_card": "card_67890",
-    "cliente_email": "joao.silva@example.com",
-    "data_evento": "2026-05-27T10:00:00Z"
+    "identificadorEvento": "evt_12345",
+    "identificadorCard": "card_67890",
+    "clienteEmail": "joao.silva@example.com",
+    "dataEvento": "2026-05-27T10:00:00Z"
   }'
 ```
 
@@ -198,9 +198,9 @@ curl -X POST http://localhost:8080/webhooks/pipefy/card-updated \
 ```json
 {
   "mensagem": "Webhook processado com sucesso",
-  "identificador_evento": "evt_12345",
-  "identificador_card": "card_67890",
-  "cliente_email": "joao.silva@example.com"
+  "identificadorEvento": "evt_12345",
+  "identificadorCard": "card_67890",
+  "clienteEmail": "joao.silva@example.com"
 }
 ```
 
@@ -221,7 +221,7 @@ O sistema garante idempotência no processamento de webhooks através do `identi
 
 - **Email**: Deve ser válido e único
 - **Patrimônio**: Deve ser maior que zero
-- **Campos obrigatórios**: nome, email, tipo_solicitacao, valor_patrimonio
+- **Campos obrigatórios**: nome, email, tipoSolicitacao, valorPatrimonio
 
 ## 🔐 Segurança
 

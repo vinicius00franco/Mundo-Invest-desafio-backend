@@ -65,18 +65,18 @@ func (s *ClienteValidationStrategy) Validate(obj interface{}) error {
 		}
 	}
 
-	// Validar tipo_solicitacao
+	// Validar tipoSolicitacao
 	if strings.TrimSpace(request.TipoSolicitacao) == "" {
-		erros = append(erros, "tipo_solicitacao é obrigatório")
+		erros = append(erros, "tipoSolicitacao é obrigatório")
 	} else if len(strings.TrimSpace(request.TipoSolicitacao)) > s.config.Business.MaxTipoSolicitacaoLength {
-		erros = append(erros, fmt.Sprintf("tipo_solicitacao deve ter no máximo %d caracteres", s.config.Business.MaxTipoSolicitacaoLength))
+		erros = append(erros, fmt.Sprintf("tipoSolicitacao deve ter no máximo %d caracteres", s.config.Business.MaxTipoSolicitacaoLength))
 	}
 
-	// Validar valor_patrimonio
+	// Validar valorPatrimonio
 	if request.ValorPatrimonio < s.config.Business.MinValorPatrimonio {
-		erros = append(erros, fmt.Sprintf("valor_patrimonio deve ser maior ou igual a %.2f", s.config.Business.MinValorPatrimonio))
+		erros = append(erros, fmt.Sprintf("valorPatrimonio deve ser maior ou igual a %.2f", s.config.Business.MinValorPatrimonio))
 	} else if request.ValorPatrimonio > s.config.Business.MaxValorPatrimonio {
-		erros = append(erros, fmt.Sprintf("valor_patrimonio deve ser menor ou igual a %.2f", s.config.Business.MaxValorPatrimonio))
+		erros = append(erros, fmt.Sprintf("valorPatrimonio deve ser menor ou igual a %.2f", s.config.Business.MaxValorPatrimonio))
 	}
 
 	if len(erros) > 0 {

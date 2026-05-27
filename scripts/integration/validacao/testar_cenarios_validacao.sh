@@ -5,7 +5,8 @@
 
 # Configurações
 BASE_URL="http://localhost:8080"
-OUTPUT_DIR="./scripts/exports"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+OUTPUT_DIR="${SCRIPT_DIR}/../../exports"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 OUTPUT_FILE="${OUTPUT_DIR}/cenarios_validacao_${TIMESTAMP}.txt"
 
@@ -73,8 +74,8 @@ executar_teste() {
 PAYLOAD1='{
   "nome": "João Silva",
   "email": "email-invalido",
-  "tipo_solicitacao": "Atualização cadastral",
-  "valor_patrimonio": 250000
+  "tipoSolicitacao": "Atualização cadastral",
+  "valorPatrimonio": 250000
 }'
 executar_teste "CENÁRIO 1: Criar cliente com e-mail inválido" \
   "Tentar criar cliente com e-mail em formato inválido" \
@@ -82,36 +83,39 @@ executar_teste "CENÁRIO 1: Criar cliente com e-mail inválido" \
   "400"
 
 # Cenário 2: Criar cliente com patrimônio negativo
-PAYLOAD2='{
-  "nome": "João Silva",
-  "email": "joao.silva@example.com",
-  "tipo_solicitacao": "Atualização cadastral",
-  "valor_patrimonio": -1000
-}'
+UNIQUE_EMAIL2="joao.silva2.${TIMESTAMP}@example.com"
+PAYLOAD2="{
+  \"nome\": \"João Silva\",
+  \"email\": \"${UNIQUE_EMAIL2}\",
+  \"tipoSolicitacao\": \"Atualização cadastral\",
+  \"valorPatrimonio\": -1000
+}"
 executar_teste "CENÁRIO 2: Criar cliente com patrimônio negativo" \
   "Tentar criar cliente com valor de patrimônio negativo" \
   "$PAYLOAD2" \
   "400"
 
 # Cenário 3: Criar cliente com patrimônio zero
-PAYLOAD3='{
-  "nome": "João Silva",
-  "email": "joao.silva@example.com",
-  "tipo_solicitacao": "Atualização cadastral",
-  "valor_patrimonio": 0
-}'
+UNIQUE_EMAIL3="joao.silva3.${TIMESTAMP}@example.com"
+PAYLOAD3="{
+  \"nome\": \"João Silva\",
+  \"email\": \"${UNIQUE_EMAIL3}\",
+  \"tipoSolicitacao\": \"Atualização cadastral\",
+  \"valorPatrimonio\": 0
+}"
 executar_teste "CENÁRIO 3: Criar cliente com patrimônio zero" \
   "Tentar criar cliente com valor de patrimônio igual a zero" \
   "$PAYLOAD3" \
   "400"
 
 # Cenário 4: Criar cliente com nome vazio
-PAYLOAD4='{
-  "nome": "",
-  "email": "joao.silva@example.com",
-  "tipo_solicitacao": "Atualização cadastral",
-  "valor_patrimonio": 250000
-}'
+UNIQUE_EMAIL4="joao.silva4.${TIMESTAMP}@example.com"
+PAYLOAD4="{
+  \"nome\": \"\",
+  \"email\": \"${UNIQUE_EMAIL4}\",
+  \"tipoSolicitacao\": \"Atualização cadastral\",
+  \"valorPatrimonio\": 250000
+}"
 executar_teste "CENÁRIO 4: Criar cliente com nome vazio" \
   "Tentar criar cliente com nome em branco" \
   "$PAYLOAD4" \
@@ -121,33 +125,35 @@ executar_teste "CENÁRIO 4: Criar cliente com nome vazio" \
 PAYLOAD5='{
   "nome": "João Silva",
   "email": "",
-  "tipo_solicitacao": "Atualização cadastral",
-  "valor_patrimonio": 250000
+  "tipoSolicitacao": "Atualização cadastral",
+  "valorPatrimonio": 250000
 }'
 executar_teste "CENÁRIO 5: Criar cliente com e-mail vazio" \
   "Tentar criar cliente com e-mail em branco" \
   "$PAYLOAD5" \
   "400"
 
-# Cenário 6: Criar cliente com tipo_solicitacao vazio
-PAYLOAD6='{
-  "nome": "João Silva",
-  "email": "joao.silva@example.com",
-  "tipo_solicitacao": "",
-  "valor_patrimonio": 250000
-}'
-executar_teste "CENÁRIO 6: Criar cliente com tipo_solicitacao vazio" \
+# Cenário 6: Criar cliente com tipoSolicitacao vazio
+UNIQUE_EMAIL6="joao.silva6.${TIMESTAMP}@example.com"
+PAYLOAD6="{
+  \"nome\": \"João Silva\",
+  \"email\": \"${UNIQUE_EMAIL6}\",
+  \"tipoSolicitacao\": \"\",
+  \"valorPatrimonio\": 250000
+}"
+executar_teste "CENÁRIO 6: Criar cliente com tipoSolicitacao vazio" \
   "Tentar criar cliente com tipo de solicitação em branco" \
   "$PAYLOAD6" \
   "400"
 
 # Cenário 7: Criar cliente com nome muito curto
-PAYLOAD7='{
-  "nome": "AB",
-  "email": "joao.silva@example.com",
-  "tipo_solicitacao": "Atualização cadastral",
-  "valor_patrimonio": 250000
-}'
+UNIQUE_EMAIL7="joao.silva7.${TIMESTAMP}@example.com"
+PAYLOAD7="{
+  \"nome\": \"AB\",
+  \"email\": \"${UNIQUE_EMAIL7}\",
+  \"tipoSolicitacao\": \"Atualização cadastral\",
+  \"valorPatrimonio\": 250000
+}"
 executar_teste "CENÁRIO 7: Criar cliente com nome muito curto" \
   "Tentar criar cliente com nome com menos de 3 caracteres" \
   "$PAYLOAD7" \

@@ -10,41 +10,41 @@ import (
 
 // WebhookRequest representa o payload para processamento de webhook
 type WebhookRequest struct {
-	IdentificadorEvento string `json:"identificador_evento"`
-	IdentificadorCard   string `json:"identificador_card"`
-	ClienteEmail        string `json:"cliente_email"`
-	DataEvento          string `json:"data_evento"`
+	IdentificadorEvento string `json:"identificadorEvento"`
+	IdentificadorCard   string `json:"identificadorCard"`
+	ClienteEmail        string `json:"clienteEmail"`
+	DataEvento          string `json:"dataEvento"`
 }
 
 // ValidarWebhookRequest valida o payload de webhook
 func ValidarWebhookRequest(request WebhookRequest) error {
 	var erros []string
 
-	// Validar identificador_evento
+	// Validar identificadorEvento
 	if strings.TrimSpace(request.IdentificadorEvento) == "" {
-		erros = append(erros, "identificador_evento é obrigatório")
+		erros = append(erros, "identificadorEvento é obrigatório")
 	}
 
-	// Validar identificador_card
+	// Validar identificadorCard
 	if strings.TrimSpace(request.IdentificadorCard) == "" {
-		erros = append(erros, "identificador_card é obrigatório")
+		erros = append(erros, "identificadorCard é obrigatório")
 	}
 
-	// Validar cliente_email
+	// Validar clienteEmail
 	if strings.TrimSpace(request.ClienteEmail) == "" {
-		erros = append(erros, "cliente_email é obrigatório")
+		erros = append(erros, "clienteEmail é obrigatório")
 	} else {
 		if !isValidEmail(request.ClienteEmail) {
-			erros = append(erros, "cliente_email inválido")
+			erros = append(erros, "clienteEmail inválido")
 		}
 	}
 
-	// Validar data_evento
+	// Validar dataEvento
 	if strings.TrimSpace(request.DataEvento) == "" {
-		erros = append(erros, "data_evento é obrigatório")
+		erros = append(erros, "dataEvento é obrigatório")
 	} else {
 		if !isValidTimestamp(request.DataEvento) {
-			erros = append(erros, "data_evento inválido")
+			erros = append(erros, "dataEvento inválido")
 		}
 	}
 
@@ -70,7 +70,7 @@ func isValidTimestamp(timestamp string) bool {
 // ValidarIdentificadorEvento valida o identificador do evento
 func ValidarIdentificadorEvento(identificador string) error {
 	if strings.TrimSpace(identificador) == "" {
-		return errors.New("identificador_evento é obrigatório")
+		return errors.New("identificadorEvento é obrigatório")
 	}
 	return nil
 }
@@ -78,7 +78,7 @@ func ValidarIdentificadorEvento(identificador string) error {
 // ValidarIdentificadorCard valida o identificador do card
 func ValidarIdentificadorCard(identificador string) error {
 	if strings.TrimSpace(identificador) == "" {
-		return errors.New("identificador_card é obrigatório")
+		return errors.New("identificadorCard é obrigatório")
 	}
 	return nil
 }
@@ -86,11 +86,11 @@ func ValidarIdentificadorCard(identificador string) error {
 // ValidarClienteEmail valida o email do cliente
 func ValidarClienteEmail(email string) error {
 	if strings.TrimSpace(email) == "" {
-		return errors.New("cliente_email é obrigatório")
+		return errors.New("clienteEmail é obrigatório")
 	}
 
 	if !isValidEmail(email) {
-		return errors.New("cliente_email inválido")
+		return errors.New("clienteEmail inválido")
 	}
 
 	return nil
@@ -99,11 +99,11 @@ func ValidarClienteEmail(email string) error {
 // ValidarDataEvento valida a data do evento
 func ValidarDataEvento(data string) error {
 	if strings.TrimSpace(data) == "" {
-		return errors.New("data_evento é obrigatório")
+		return errors.New("dataEvento é obrigatório")
 	}
 
 	if !isValidTimestamp(data) {
-		return errors.New("data_evento inválido")
+		return errors.New("dataEvento inválido")
 	}
 
 	return nil
@@ -133,23 +133,23 @@ func ValidarWebhookRequestDetalhado(request WebhookRequest) []*ErroValidacaoWebh
 	var erros []*ErroValidacaoWebhook
 
 	if strings.TrimSpace(request.IdentificadorEvento) == "" {
-		erros = append(erros, NewErroValidacaoWebhook("identificador_evento", "identificador_evento é obrigatório"))
+		erros = append(erros, NewErroValidacaoWebhook("identificadorEvento", "identificadorEvento é obrigatório"))
 	}
 
 	if strings.TrimSpace(request.IdentificadorCard) == "" {
-		erros = append(erros, NewErroValidacaoWebhook("identificador_card", "identificador_card é obrigatório"))
+		erros = append(erros, NewErroValidacaoWebhook("identificadorCard", "identificadorCard é obrigatório"))
 	}
 
 	if strings.TrimSpace(request.ClienteEmail) == "" {
-		erros = append(erros, NewErroValidacaoWebhook("cliente_email", "cliente_email é obrigatório"))
+		erros = append(erros, NewErroValidacaoWebhook("clienteEmail", "clienteEmail é obrigatório"))
 	} else if !isValidEmail(request.ClienteEmail) {
-		erros = append(erros, NewErroValidacaoWebhook("cliente_email", "cliente_email inválido"))
+		erros = append(erros, NewErroValidacaoWebhook("clienteEmail", "clienteEmail inválido"))
 	}
 
 	if strings.TrimSpace(request.DataEvento) == "" {
-		erros = append(erros, NewErroValidacaoWebhook("data_evento", "data_evento é obrigatório"))
+		erros = append(erros, NewErroValidacaoWebhook("dataEvento", "dataEvento é obrigatório"))
 	} else if !isValidTimestamp(request.DataEvento) {
-		erros = append(erros, NewErroValidacaoWebhook("data_evento", "data_evento inválido"))
+		erros = append(erros, NewErroValidacaoWebhook("dataEvento", "dataEvento inválido"))
 	}
 
 	return erros

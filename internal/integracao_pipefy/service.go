@@ -59,6 +59,7 @@ func (s *pipefyIntegrationService) CriarCardCliente(ctx context.Context, pipeID 
 			Values:  []string{dados.TipoSolicitacao},
 		},
 	}
+	// NOTA: FieldIDs são identificadores de campos do Pipefy (snake_case) e devem ser configurados conforme o setup do pipe
 
 	mutation, err := s.client.EstruturarMutationCreateCard(pipeID, fieldsAttributes)
 	if err != nil {
@@ -88,6 +89,7 @@ func (s *pipefyIntegrationService) AtualizarCardPrioridade(ctx context.Context, 
 			Values:  []string{nivelPrioridade},
 		},
 	}
+	// NOTA: FieldIDs são identificadores de campos do Pipefy (snake_case) e devem ser configurados conforme o setup do pipe
 
 	mutation, err := s.client.EstruturarMutationUpdateCard(cardID, fieldsAttributes)
 	if err != nil {

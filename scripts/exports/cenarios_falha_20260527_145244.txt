@@ -1,0 +1,126 @@
+========================================
+TESTES DE CENÁRIOS DE FALHA
+Data: qua 27 mai 2026 14:52:44 -03
+========================================
+
+=== CENÁRIO 1: Criar cliente sem campo cliente_nome ===
+Descrição: Tentar criar cliente sem fornecer o campo cliente_nome
+
+Payload enviado:
+{
+  "email": "joao.silha.20260527_145244@example.com",
+  "tipoSolicitacao": "Atualização cadastral",
+  "valorPatrimonio": 250000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 400
+Resposta JSON:
+{
+  "erro": "erro de validação: nome é obrigatório"
+}
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 2: Criar cliente sem campo tipoSolicitacao ===
+Descrição: Tentar criar cliente sem fornecer o campo tipoSolicitacao
+
+Payload enviado:
+{
+  "nome": "João Silva",
+  "email": "joao.silva2.20260527_145244@example.com",
+  "valorPatrimonio": 250000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 400
+Resposta JSON:
+{
+  "erro": "erro de validação: tipoSolicitacao é obrigatório"
+}
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 3: Criar cliente sem campo valorPatrimonio ===
+Descrição: Tentar criar cliente sem fornecer o campo valorPatrimonio
+
+Payload enviado:
+{
+  "nome": "João Silva",
+  "email": "joao.silva3.20260527_145244@example.com",
+  "tipoSolicitacao": "Atualização cadastral"
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 400
+Resposta JSON:
+{
+  "erro": "erro de validação: valorPatrimonio deve ser maior ou igual a 0.01"
+}
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 4: Criar cliente sem campo email ===
+Descrição: Tentar criar cliente sem fornecer o campo email
+
+Payload enviado:
+{
+  "nome": "João Silva",
+  "tipoSolicitacao": "Atualização cadastral",
+  "valorPatrimonio": 250000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 400
+Resposta JSON:
+{
+  "erro": "erro de validação: email é obrigatório"
+}
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 5: Criar cliente com erro de banco de dados ===
+Descrição: Tentar criar cliente quando banco de dados está indisponível
+Nota: Este cenário requer que o banco de dados esteja parado
+Para testar: docker-compose stop postgres
+
+Payload enviado:
+{
+  "nome": "João Silva",
+  "email": "joao.silva5.20260527_145244@example.com",
+  "tipoSolicitacao": "Atualização cadastral",
+  "valorPatrimonio": 250000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 201
+Resposta JSON:
+{
+  "mensagem": "Cliente criado com sucesso",
+  "identificadorInterno": 76,
+  "identificadorExterno": "card_1779904365",
+  "nome": "João Silva",
+  "email": "joao.silva5.20260527_145244@example.com",
+  "valorPatrimonio": 250000,
+  "tipoSolicitacao": "Atualização cadastral",
+  "status": "Aguardando Análise",
+  "dataCriacao": "2026-05-27T17:52:45.011885Z"
+}
+
+Verificações:
+✗ HTTP 201 - FALHOU (esperado 500)
+  Nota: Se o banco está rodando, este teste falhará corretamente
+
+========================================
+FIM DOS TESTES DE FALHA
+Resultado salvo em: /home/vinicius/.windsurf/worktrees/MundoInvest/MundoInvest-dcd16b68/scripts/integration/falha/../../exports/cenarios_falha_20260527_145244.txt
+========================================
