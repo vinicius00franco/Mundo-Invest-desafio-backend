@@ -10,15 +10,18 @@ import (
 type Config struct {
 	// Database
 	Database DatabaseConfig
-	
+
 	// HTTP
 	HTTP HTTPConfig
-	
+
 	// Timeouts
 	Timeouts TimeoutConfig
-	
+
 	// Business
 	Business BusinessConfig
+
+	// Pipefy
+	Pipefy PipefyConfig
 }
 
 // DatabaseConfig configurações do banco de dados
@@ -39,19 +42,26 @@ type HTTPConfig struct {
 
 // TimeoutConfig configurações de timeout
 type TimeoutConfig struct {
-	Default      time.Duration
-	Database     time.Duration
-	ExternalAPI  time.Duration
+	Default     time.Duration
+	Database    time.Duration
+	ExternalAPI time.Duration
 }
 
 // BusinessConfig configurações de negócio
 type BusinessConfig struct {
-	LimitePrioridadeAlta float64
-	MaxNomeLength        int
-	MaxEmailLength       int
+	LimitePrioridadeAlta     float64
+	MaxNomeLength            int
+	MaxEmailLength           int
 	MaxTipoSolicitacaoLength int
-	MinValorPatrimonio   float64
-	MaxValorPatrimonio   float64
+	MinValorPatrimonio       float64
+	MaxValorPatrimonio       float64
+}
+
+// PipefyConfig configurações do Pipefy
+type PipefyConfig struct {
+	APIToken string
+	APIURL   string
+	PipeID   string
 }
 
 // Load carrega as configurações de environment variables com valores padrão
@@ -81,6 +91,11 @@ func Load() *Config {
 			MaxTipoSolicitacaoLength: getIntEnv("BUSINESS_MAX_TIPO_SOLICITACAO_LENGTH", 50),
 			MinValorPatrimonio:       getFloatEnv("BUSINESS_MIN_VALOR_PATRIMONIO", 0.01),
 			MaxValorPatrimonio:       getFloatEnv("BUSINESS_MAX_VALOR_PATRIMONIO", 999999999.99),
+		},
+		Pipefy: PipefyConfig{
+			APIToken: getStringEnv("PIPEFY_API_TOKEN", ""),
+			APIURL:   getStringEnv("PIPEFY_API_URL", "https://api.pipefy.com/graphql"),
+			PipeID:   getStringEnv("PIPEFY_PIPE_ID", ""),
 		},
 	}
 }

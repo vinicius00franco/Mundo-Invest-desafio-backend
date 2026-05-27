@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 	"time"
 
@@ -17,7 +18,7 @@ import (
 type Server struct {
 	httpServer *http.Server
 	config     *config.Config
-	db         *database.Connection
+	db         *sql.DB
 }
 
 // NewServer cria uma nova instância do servidor com dependency injection
@@ -29,8 +30,8 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	}
 
 	// Criar repositórios
-	clienteRepository := gestao_clientes.NovoClienteRepository(db)
-	eventoRepository := processamento_eventos.NovoEventoRepository(db)
+	clienteRepository := gestao_clientes.NovoClienteRepository(db, cfg)
+	eventoRepository := processamento_eventos.NovoEventoRepository(db, cfg)
 
 	// Criar serviços de domínio
 	prioridadeCalculator := dominio.NovoPrioridadeCalculator(cfg)
@@ -40,7 +41,7 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	// Criar serviços de aplicação
 	clienteService := gestao_clientes.NovoClienteService(
 		clienteRepository,
-		integracao_pipefy.NovoPipefyIntegrationService(pipefyClient),
+		integracao_pipefy.NewPipefyIntegrationService(pipefyClient, cfg),
 		cfg.Pipefy.PipeID,
 		eventDispatcher,
 		cfg,
