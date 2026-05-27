@@ -1,13 +1,9 @@
 package gestao_clientes
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/MundoInvest/backend/internal/dominio"
-	"github.com/MundoInvest/backend/internal/integracao_pipefy"
 )
 
 // ClienteController manipula as requisições HTTP relacionadas a clientes
@@ -71,20 +67,4 @@ func (c *ClienteController) CriarClienteHandler(w http.ResponseWriter, r *http.R
 // RegistrarRotas registra as rotas do controller no router
 func (c *ClienteController) RegistrarRotas(mux *http.ServeMux) {
 	mux.HandleFunc("/clientes", c.CriarClienteHandler)
-}
-
-// NovoClienteControllerComDB cria uma nova instância de ClienteController com banco de dados
-func NovoClienteControllerComDB(db *sql.DB, pipeID string) *ClienteController {
-	repository := NovoClienteRepository(db)
-	pipefyClient := integracao_pipefy.NovoPipefyGraphQLClient("", "")
-	pipefyService := integracao_pipefy.NewPipefyIntegrationService(pipefyClient)
-	eventDispatcher := dominio.NewInMemoryEventDispatcher()
-
-	// Registrar handlers de eventos
-	eventDispatcher.Register(dominio.NewLoggingEventHandler())
-	eventDispatcher.Register(dominio.NewClienteCriadoEventHandler(eventDispatcher))
-	eventDispatcher.Register(dominio.NewClientePrioridadeCalculadaEventHandler())
-
-	service := NovoClienteService(repository, pipefyService, pipeID, eventDispatcher)
-	return NovoClienteController(service)
 }

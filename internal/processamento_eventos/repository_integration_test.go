@@ -1,11 +1,13 @@
 package processamento_eventos
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"testing"
 	"time"
 
+	"github.com/MundoInvest/backend/internal/shared/config"
 	_ "github.com/lib/pq"
 )
 
@@ -25,7 +27,8 @@ func TestEventoRepositoryIntegracao_Salvar(t *testing.T) {
 	}
 	defer db.Close()
 
-	repository := NovoEventoRepository(db)
+	cfg := config.Load()
+	repository := NovoEventoRepository(db, cfg)
 
 	evento := Evento{
 		IdentificadorEvento: "evt_test_123",
@@ -37,7 +40,7 @@ func TestEventoRepositoryIntegracao_Salvar(t *testing.T) {
 		DataAtualizacao:     nil, // Field is nullable
 	}
 
-	salvo, err := repository.Salvar(evento)
+	salvo, err := repository.Salvar(context.Background(), evento)
 	if err != nil {
 		t.Fatalf("Erro ao salvar evento: %v", err)
 	}
@@ -58,10 +61,11 @@ func TestEventoRepositoryIntegracao_VerificarFoiProcessado(t *testing.T) {
 	}
 	defer db.Close()
 
-	repository := NovoEventoRepository(db)
+	cfg := config.Load()
+	repository := NovoEventoRepository(db, cfg)
 
 	// Testar evento não existente
-	foiProcessado, err := repository.VerificarFoiProcessado("evt_inexistente")
+	foiProcessado, err := repository.VerificarFoiProcessado(context.Background(), "evt_inexistente")
 	if err != nil {
 		t.Fatalf("Erro ao verificar evento inexistente: %v", err)
 	}
@@ -81,13 +85,13 @@ func TestEventoRepositoryIntegracao_VerificarFoiProcessado(t *testing.T) {
 		DataAtualizacao:     nil, // Field is nullable
 	}
 
-	salvo, err := repository.Salvar(evento)
+	salvo, err := repository.Salvar(context.Background(), evento)
 	if err != nil {
 		t.Fatalf("Erro ao salvar evento: %v", err)
 	}
 
 	// Testar evento processado
-	foiProcessado, err = repository.VerificarFoiProcessado("evt_test_456")
+	foiProcessado, err = repository.VerificarFoiProcessado(context.Background(), "evt_test_456")
 	if err != nil {
 		t.Fatalf("Erro ao verificar evento processado: %v", err)
 	}
@@ -108,7 +112,8 @@ func TestEventoRepositoryIntegracao_BuscarPorIdentificadorCard(t *testing.T) {
 	}
 	defer db.Close()
 
-	repository := NovoEventoRepository(db)
+	cfg := config.Load()
+	repository := NovoEventoRepository(db, cfg)
 
 	// Limpar eventos de teste anteriores
 	cardID := "card_test_789"
@@ -126,14 +131,14 @@ func TestEventoRepositoryIntegracao_BuscarPorIdentificadorCard(t *testing.T) {
 			DataAtualizacao:     nil, // Field is nullable
 		}
 
-		_, err := repository.Salvar(evento)
+		_, err := repository.Salvar(context.Background(), evento)
 		if err != nil {
 			t.Fatalf("Erro ao salvar evento: %v", err)
 		}
 	}
 
 	// Buscar eventos por card
-	eventos, err := repository.BuscarPorIdentificadorCard(cardID)
+	eventos, err := repository.BuscarPorIdentificadorCard(context.Background(), cardID)
 	if err != nil {
 		t.Fatalf("Erro ao buscar eventos por card: %v", err)
 	}

@@ -7,6 +7,8 @@ import (
 
 	"github.com/MundoInvest/backend/internal/dominio"
 	"github.com/MundoInvest/backend/internal/integracao_pipefy"
+	"github.com/MundoInvest/backend/internal/shared/config"
+	"github.com/MundoInvest/backend/internal/shared/errors"
 )
 
 // ClienteService define a interface para operações de negócio de clientes
@@ -20,6 +22,7 @@ type clienteService struct {
 	pipefyService   integracao_pipefy.PipefyIntegrationService
 	pipeID          string
 	eventDispatcher dominio.EventDispatcher
+	config          *config.Config
 }
 
 // NovoClienteService cria uma nova instância de ClienteService
@@ -28,20 +31,25 @@ func NovoClienteService(
 	pipefyService integracao_pipefy.PipefyIntegrationService,
 	pipeID string,
 	eventDispatcher dominio.EventDispatcher,
+	cfg *config.Config,
 ) ClienteService {
 	return &clienteService{
 		repository:      repository,
 		pipefyService:   pipefyService,
 		pipeID:          pipeID,
 		eventDispatcher: eventDispatcher,
+		config:          cfg,
 	}
 }
 
 // CriarCliente cria um novo cliente seguindo as regras de negócio
 func (s *clienteService) CriarCliente(ctx context.Context, request CriarClienteRequest) (*Cliente, error) {
+	ctx, cancel := context.WithTimeout(ctx, s.config.Timeouts.Default)
+	defer cancel()
+
 	// Validar o payload
 	if err := ValidarCriarClienteRequest(request); err != nil {
-		return nil, fmt.Errorf("erro de validação: %w", err)
+		return nil, errors.NewValidationError("", err.Error())
 	}
 
 	// Gerar identificador externo simulado (card_id)
@@ -61,9 +69,9 @@ func (s *clienteService) CriarCliente(ctx context.Context, request CriarClienteR
 	}
 
 	// Salvar cliente no banco de dados
-	clienteSalvo, err := s.repository.Salvar(cliente)
+	clienteSalvo, err := s.repository.Salvar(ctx, cliente)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao salvar cliente: %w", err)
+		return nil, errors.NewServiceError("ClienteService", "erro ao salvar cliente", err)
 	}
 
 	// Integrar com Pipefy usando o serviço dedicado
@@ -76,13 +84,13 @@ func (s *clienteService) CriarCliente(ctx context.Context, request CriarClienteR
 
 	cardID, err := s.pipefyService.CriarCardCliente(ctx, s.pipeID, cardData)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao criar card no Pipefy: %w", err)
+		return nil, errors.NewIntegrationError("Pipefy", "erro ao criar card no Pipefy", err)
 	}
 
 	// Atualizar identificador externo com o card ID retornado
 	clienteSalvo.IdentificadorExterno = cardID
-	if err := s.repository.Atualizar(*clienteSalvo); err != nil {
-		return nil, fmt.Errorf("erro ao atualizar cliente com card ID: %w", err)
+	if err := s.repository.Atualizar(ctx, *clienteSalvo); err != nil {
+		return nil, errors.NewServiceError("ClienteService", "erro ao atualizar cliente com card ID", err)
 	}
 
 	// Emitir evento de domínio

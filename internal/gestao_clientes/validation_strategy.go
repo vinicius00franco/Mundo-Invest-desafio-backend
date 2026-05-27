@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"net/mail"
 	"strings"
+
+	"github.com/MundoInvest/backend/internal/shared/config"
+	"github.com/MundoInvest/backend/internal/shared/errors"
 )
 
 // ValidationStrategy define a interface para estratégias de validação
@@ -15,18 +18,29 @@ type ValidationStrategy interface {
 }
 
 // ClienteValidationStrategy implementa validação de clientes
-type ClienteValidationStrategy struct{}
+type ClienteValidationStrategy struct {
+	config *config.Config
+}
 
-// NewClienteValidationStrategy cria uma nova estratégia de validação de clientes
+// NewClienteValidationStrategy cria uma nova estratégia de validação de clientes com configuração padrão
 func NewClienteValidationStrategy() *ClienteValidationStrategy {
-	return &ClienteValidationStrategy{}
+	return &ClienteValidationStrategy{
+		config: config.Load(),
+	}
+}
+
+// NewClienteValidationStrategyComConfig cria uma nova estratégia de validação de clientes com configuração customizada
+func NewClienteValidationStrategyComConfig(cfg *config.Config) *ClienteValidationStrategy {
+	return &ClienteValidationStrategy{
+		config: cfg,
+	}
 }
 
 // Validate valida um cliente
 func (s *ClienteValidationStrategy) Validate(obj interface{}) error {
 	request, ok := obj.(CriarClienteRequest)
 	if !ok {
-		return fmt.Errorf("objeto inválido para validação de cliente")
+		return errors.NewValidationError("", "objeto inválido para validação de cliente")
 	}
 
 	var erros []string
@@ -36,6 +50,8 @@ func (s *ClienteValidationStrategy) Validate(obj interface{}) error {
 		erros = append(erros, "nome é obrigatório")
 	} else if len(strings.TrimSpace(request.Nome)) < 3 {
 		erros = append(erros, "nome deve ter pelo menos 3 caracteres")
+	} else if len(strings.TrimSpace(request.Nome)) > s.config.Business.MaxNomeLength {
+		erros = append(erros, fmt.Sprintf("nome deve ter no máximo %d caracteres", s.config.Business.MaxNomeLength))
 	}
 
 	// Validar email
@@ -44,21 +60,27 @@ func (s *ClienteValidationStrategy) Validate(obj interface{}) error {
 	} else {
 		if !s.isValidEmail(request.Email) {
 			erros = append(erros, "email inválido")
+		} else if len(strings.TrimSpace(request.Email)) > s.config.Business.MaxEmailLength {
+			erros = append(erros, fmt.Sprintf("email deve ter no máximo %d caracteres", s.config.Business.MaxEmailLength))
 		}
 	}
 
 	// Validar tipo_solicitacao
 	if strings.TrimSpace(request.TipoSolicitacao) == "" {
 		erros = append(erros, "tipo_solicitacao é obrigatório")
+	} else if len(strings.TrimSpace(request.TipoSolicitacao)) > s.config.Business.MaxTipoSolicitacaoLength {
+		erros = append(erros, fmt.Sprintf("tipo_solicitacao deve ter no máximo %d caracteres", s.config.Business.MaxTipoSolicitacaoLength))
 	}
 
 	// Validar valor_patrimonio
-	if request.ValorPatrimonio <= 0 {
-		erros = append(erros, "valor_patrimonio deve ser positivo")
+	if request.ValorPatrimonio < s.config.Business.MinValorPatrimonio {
+		erros = append(erros, fmt.Sprintf("valor_patrimonio deve ser maior ou igual a %.2f", s.config.Business.MinValorPatrimonio))
+	} else if request.ValorPatrimonio > s.config.Business.MaxValorPatrimonio {
+		erros = append(erros, fmt.Sprintf("valor_patrimonio deve ser menor ou igual a %.2f", s.config.Business.MaxValorPatrimonio))
 	}
 
 	if len(erros) > 0 {
-		return fmt.Errorf("erros de validação: %s", strings.Join(erros, "; "))
+		return errors.NewValidationError("", strings.Join(erros, "; "))
 	}
 
 	return nil

@@ -1,9 +1,10 @@
 package gestao_clientes
 
 import (
-	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/MundoInvest/backend/internal/shared/config"
 )
 
 // CriarClienteRequest representa o payload para criação de cliente
@@ -20,49 +21,10 @@ func ValidarCriarClienteRequest(request CriarClienteRequest) error {
 	return strategy.Validate(request)
 }
 
-// ValidarEmail valida um email individual
-func ValidarEmail(email string) error {
-	if strings.TrimSpace(email) == "" {
-		return errors.New("email é obrigatório")
-	}
-
-	strategy := NewClienteValidationStrategy()
-	if !strategy.isValidEmail(email) {
-		return errors.New("email inválido")
-	}
-
-	return nil
-}
-
-// ValidarValorPatrimonio valida o valor do patrimônio
-func ValidarValorPatrimonio(valor float64) error {
-	if valor <= 0 {
-		return errors.New("valor_patrimonio deve ser positivo")
-	}
-
-	return nil
-}
-
-// ValidarNome valida o nome do cliente
-func ValidarNome(nome string) error {
-	if strings.TrimSpace(nome) == "" {
-		return errors.New("nome é obrigatório")
-	}
-
-	if len(strings.TrimSpace(nome)) < 3 {
-		return errors.New("nome deve ter pelo menos 3 caracteres")
-	}
-
-	return nil
-}
-
-// ValidarTipoSolicitacao valida o tipo de solicitação
-func ValidarTipoSolicitacao(tipo string) error {
-	if strings.TrimSpace(tipo) == "" {
-		return errors.New("tipo_solicitacao é obrigatório")
-	}
-
-	return nil
+// ValidarCriarClienteRequestComConfig valida o payload usando configuração customizada
+func ValidarCriarClienteRequestComConfig(request CriarClienteRequest, cfg *config.Config) error {
+	strategy := NewClienteValidationStrategyComConfig(cfg)
+	return strategy.Validate(request)
 }
 
 // ErroValidacao representa um erro de validação com detalhes

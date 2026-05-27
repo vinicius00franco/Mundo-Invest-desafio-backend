@@ -2,7 +2,10 @@ package dominio
 
 import (
 	"context"
+	"fmt"
 	"time"
+
+	"github.com/MundoInvest/backend/internal/shared/logger"
 )
 
 // Event representa um evento de domínio
@@ -104,9 +107,25 @@ func (d *InMemoryEventDispatcher) Dispatch(ctx context.Context, event Event) err
 	}
 
 	for _, handler := range handlers {
-		if err := handler.Handle(ctx, event); err != nil {
-			return err
-		}
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					logger.Error("Panic recuperado no handler de evento",
+						"event_type", event.EventType(),
+						"handler", handler.EventType(),
+						"panic", fmt.Sprintf("%v", r),
+					)
+				}
+			}()
+
+			if err := handler.Handle(ctx, event); err != nil {
+				logger.Error("Erro ao processar evento",
+					"event_type", event.EventType(),
+					"handler", handler.EventType(),
+					"error", err.Error(),
+				)
+			}
+		}()
 	}
 
 	return nil

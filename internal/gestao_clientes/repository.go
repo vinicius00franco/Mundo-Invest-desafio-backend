@@ -1,9 +1,13 @@
 package gestao_clientes
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"time"
+
+	"github.com/MundoInvest/backend/internal/shared/config"
+	"github.com/MundoInvest/backend/internal/shared/errors"
 )
 
 // Cliente representa a entidade Cliente do contexto de gestão de clientes
@@ -22,25 +26,32 @@ type Cliente struct {
 
 // ClienteRepository define a interface para operações de persistência de clientes
 type ClienteRepository interface {
-	Salvar(cliente Cliente) (*Cliente, error)
-	BuscarPorIdentificadorInterno(identificadorInterno int64) (*Cliente, error)
-	BuscarPorEmail(email string) (*Cliente, error)
-	BuscarPorIdentificadorExterno(identificadorExterno string) (*Cliente, error)
-	Atualizar(cliente Cliente) error
+	Salvar(ctx context.Context, cliente Cliente) (*Cliente, error)
+	BuscarPorIdentificadorInterno(ctx context.Context, identificadorInterno int64) (*Cliente, error)
+	BuscarPorEmail(ctx context.Context, email string) (*Cliente, error)
+	BuscarPorIdentificadorExterno(ctx context.Context, identificadorExterno string) (*Cliente, error)
+	Atualizar(ctx context.Context, cliente Cliente) error
 }
 
 // clienteRepository implementa a interface ClienteRepository
 type clienteRepository struct {
-	banco *sql.DB
+	banco  *sql.DB
+	config *config.Config
 }
 
 // NovoClienteRepository cria uma nova instância de ClienteRepository
-func NovoClienteRepository(banco *sql.DB) ClienteRepository {
-	return &clienteRepository{banco: banco}
+func NovoClienteRepository(banco *sql.DB, cfg *config.Config) ClienteRepository {
+	return &clienteRepository{
+		banco:  banco,
+		config: cfg,
+	}
 }
 
 // Salvar insere um novo cliente no banco de dados
-func (r *clienteRepository) Salvar(cliente Cliente) (*Cliente, error) {
+func (r *clienteRepository) Salvar(ctx context.Context, cliente Cliente) (*Cliente, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.config.Timeouts.Database)
+	defer cancel()
+
 	query := `
 		INSERT INTO gestao_clientes.cliente (
 			gcl_cli_ext, gcl_cli_nom, gcl_cli_ema, gcl_cli_pat, 
@@ -52,7 +63,8 @@ func (r *clienteRepository) Salvar(cliente Cliente) (*Cliente, error) {
 	var identificadorInterno int64
 	var dataCriacao time.Time
 
-	err := r.banco.QueryRow(
+	err := r.banco.QueryRowContext(
+		ctx,
 		query,
 		cliente.IdentificadorExterno,
 		cliente.Nome,
@@ -64,7 +76,10 @@ func (r *clienteRepository) Salvar(cliente Cliente) (*Cliente, error) {
 	).Scan(&identificadorInterno, &dataCriacao)
 
 	if err != nil {
-		return nil, fmt.Errorf("erro ao salvar cliente: %w", err)
+		if ctx.Err() == context.DeadlineExceeded {
+			return nil, errors.NewTimeoutError("salvar cliente", "timeout ao executar operação de banco de dados")
+		}
+		return nil, errors.NewRepositoryError("salvar cliente", err)
 	}
 
 	cliente.IdentificadorInterno = identificadorInterno
@@ -74,7 +89,10 @@ func (r *clienteRepository) Salvar(cliente Cliente) (*Cliente, error) {
 }
 
 // BuscarPorIdentificadorInterno busca um cliente pelo identificador interno
-func (r *clienteRepository) BuscarPorIdentificadorInterno(identificadorInterno int64) (*Cliente, error) {
+func (r *clienteRepository) BuscarPorIdentificadorInterno(ctx context.Context, identificadorInterno int64) (*Cliente, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.config.Timeouts.Database)
+	defer cancel()
+
 	query := `
 		SELECT 
 			gcl_cli_int, gcl_cli_ext, gcl_cli_nom, gcl_cli_ema, 
@@ -86,7 +104,7 @@ func (r *clienteRepository) BuscarPorIdentificadorInterno(identificadorInterno i
 
 	var cliente Cliente
 
-	err := r.banco.QueryRow(query, identificadorInterno).Scan(
+	err := r.banco.QueryRowContext(ctx, query, identificadorInterno).Scan(
 		&cliente.IdentificadorInterno,
 		&cliente.IdentificadorExterno,
 		&cliente.Nome,
@@ -101,16 +119,22 @@ func (r *clienteRepository) BuscarPorIdentificadorInterno(identificadorInterno i
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("cliente não encontrado com identificador interno %d", identificadorInterno)
+			return nil, errors.NewNotFoundError("cliente", fmt.Sprintf("%d", identificadorInterno))
 		}
-		return nil, fmt.Errorf("erro ao buscar cliente por identificador interno: %w", err)
+		if ctx.Err() == context.DeadlineExceeded {
+			return nil, errors.NewTimeoutError("buscar cliente por identificador interno", "timeout ao executar operação de banco de dados")
+		}
+		return nil, errors.NewRepositoryError("buscar cliente por identificador interno", err)
 	}
 
 	return &cliente, nil
 }
 
 // BuscarPorEmail busca um cliente pelo email
-func (r *clienteRepository) BuscarPorEmail(email string) (*Cliente, error) {
+func (r *clienteRepository) BuscarPorEmail(ctx context.Context, email string) (*Cliente, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.config.Timeouts.Database)
+	defer cancel()
+
 	query := `
 		SELECT 
 			gcl_cli_int, gcl_cli_ext, gcl_cli_nom, gcl_cli_ema, 
@@ -122,7 +146,7 @@ func (r *clienteRepository) BuscarPorEmail(email string) (*Cliente, error) {
 
 	var cliente Cliente
 
-	err := r.banco.QueryRow(query, email).Scan(
+	err := r.banco.QueryRowContext(ctx, query, email).Scan(
 		&cliente.IdentificadorInterno,
 		&cliente.IdentificadorExterno,
 		&cliente.Nome,
@@ -137,16 +161,22 @@ func (r *clienteRepository) BuscarPorEmail(email string) (*Cliente, error) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("cliente não encontrado com email %s", email)
+			return nil, errors.NewNotFoundError("cliente", email)
 		}
-		return nil, fmt.Errorf("erro ao buscar cliente por email: %w", err)
+		if ctx.Err() == context.DeadlineExceeded {
+			return nil, errors.NewTimeoutError("buscar cliente por email", "timeout ao executar operação de banco de dados")
+		}
+		return nil, errors.NewRepositoryError("buscar cliente por email", err)
 	}
 
 	return &cliente, nil
 }
 
 // BuscarPorIdentificadorExterno busca um cliente pelo identificador externo (card_id)
-func (r *clienteRepository) BuscarPorIdentificadorExterno(identificadorExterno string) (*Cliente, error) {
+func (r *clienteRepository) BuscarPorIdentificadorExterno(ctx context.Context, identificadorExterno string) (*Cliente, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.config.Timeouts.Database)
+	defer cancel()
+
 	query := `
 		SELECT 
 			gcl_cli_int, gcl_cli_ext, gcl_cli_nom, gcl_cli_ema, 
@@ -158,7 +188,7 @@ func (r *clienteRepository) BuscarPorIdentificadorExterno(identificadorExterno s
 
 	var cliente Cliente
 
-	err := r.banco.QueryRow(query, identificadorExterno).Scan(
+	err := r.banco.QueryRowContext(ctx, query, identificadorExterno).Scan(
 		&cliente.IdentificadorInterno,
 		&cliente.IdentificadorExterno,
 		&cliente.Nome,
@@ -173,16 +203,22 @@ func (r *clienteRepository) BuscarPorIdentificadorExterno(identificadorExterno s
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("cliente não encontrado com identificador externo %s", identificadorExterno)
+			return nil, errors.NewNotFoundError("cliente", identificadorExterno)
 		}
-		return nil, fmt.Errorf("erro ao buscar cliente por identificador externo: %w", err)
+		if ctx.Err() == context.DeadlineExceeded {
+			return nil, errors.NewTimeoutError("buscar cliente por identificador externo", "timeout ao executar operação de banco de dados")
+		}
+		return nil, errors.NewRepositoryError("buscar cliente por identificador externo", err)
 	}
 
 	return &cliente, nil
 }
 
 // Atualizar atualiza um cliente existente no banco de dados
-func (r *clienteRepository) Atualizar(cliente Cliente) error {
+func (r *clienteRepository) Atualizar(ctx context.Context, cliente Cliente) error {
+	ctx, cancel := context.WithTimeout(ctx, r.config.Timeouts.Database)
+	defer cancel()
+
 	query := `
 		UPDATE gestao_clientes.cliente
 		SET 
@@ -197,7 +233,8 @@ func (r *clienteRepository) Atualizar(cliente Cliente) error {
 		WHERE gcl_cli_int = $1
 	`
 
-	resultado, err := r.banco.Exec(
+	resultado, err := r.banco.ExecContext(
+		ctx,
 		query,
 		cliente.IdentificadorInterno,
 		cliente.IdentificadorExterno,
@@ -210,16 +247,19 @@ func (r *clienteRepository) Atualizar(cliente Cliente) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("erro ao atualizar cliente: %w", err)
+		if ctx.Err() == context.DeadlineExceeded {
+			return errors.NewTimeoutError("atualizar cliente", "timeout ao executar operação de banco de dados")
+		}
+		return errors.NewRepositoryError("atualizar cliente", err)
 	}
 
 	linhasAfetadas, err := resultado.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("erro ao verificar linhas afetadas: %w", err)
+		return errors.NewRepositoryError("verificar linhas afetadas", err)
 	}
 
 	if linhasAfetadas == 0 {
-		return fmt.Errorf("nenhum cliente encontrado para atualizar com identificador interno %d", cliente.IdentificadorInterno)
+		return errors.NewNotFoundError("cliente", fmt.Sprintf("%d", cliente.IdentificadorInterno))
 	}
 
 	return nil

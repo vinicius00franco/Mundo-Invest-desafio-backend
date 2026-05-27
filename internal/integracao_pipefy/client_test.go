@@ -1,17 +1,20 @@
 package integracao_pipefy
 
 import (
+	"context"
 	"testing"
+
+	"github.com/MundoInvest/backend/internal/shared/config"
 )
 
 func TestPipefyGraphQLClient_EstruturarMutationCreateCard(t *testing.T) {
 	client := NovoPipefyGraphQLClient("test_token", "https://api.pipefy.com/graphql")
 
 	tests := []struct {
-		name           string
-		pipeID         string
-		fields         []FieldAttribute
-		esperadoErro   bool
+		name         string
+		pipeID       string
+		fields       []FieldAttribute
+		esperadoErro bool
 	}{
 		{
 			name:   "Mutation válida",
@@ -60,10 +63,10 @@ func TestPipefyGraphQLClient_EstruturarMutationUpdateCard(t *testing.T) {
 	client := NovoPipefyGraphQLClient("test_token", "https://api.pipefy.com/graphql")
 
 	tests := []struct {
-		name           string
-		cardID         string
-		fields         []FieldAttribute
-		esperadoErro   bool
+		name         string
+		cardID       string
+		fields       []FieldAttribute
+		esperadoErro bool
 	}{
 		{
 			name:   "Mutation válida",
@@ -118,7 +121,8 @@ func TestPipefyGraphQLClient_ExecutarMutation(t *testing.T) {
 
 func TestPipefyIntegrationService_CriarCardCliente(t *testing.T) {
 	client := NovoPipefyGraphQLClient("test_token", "https://api.pipefy.com/graphql")
-	service := NewPipefyIntegrationService(client)
+	cfg := config.Load()
+	service := NewPipefyIntegrationService(client, cfg)
 
 	dados := CardClienteData{
 		Nome:            "João Silva",
@@ -127,7 +131,7 @@ func TestPipefyIntegrationService_CriarCardCliente(t *testing.T) {
 		TipoSolicitacao: "abertura_conta",
 	}
 
-	cardID, err := service.CriarCardCliente(nil, "pipe_123", dados)
+	cardID, err := service.CriarCardCliente(context.Background(), "pipe_123", dados)
 
 	if err != nil {
 		t.Errorf("Erro ao criar card: %v", err)
@@ -140,9 +144,10 @@ func TestPipefyIntegrationService_CriarCardCliente(t *testing.T) {
 
 func TestPipefyIntegrationService_AtualizarCardPrioridade(t *testing.T) {
 	client := NovoPipefyGraphQLClient("test_token", "https://api.pipefy.com/graphql")
-	service := NewPipefyIntegrationService(client)
+	cfg := config.Load()
+	service := NewPipefyIntegrationService(client, cfg)
 
-	err := service.AtualizarCardPrioridade(nil, "card_123", "prioridade_alta")
+	err := service.AtualizarCardPrioridade(context.Background(), "card_123", "prioridade_alta")
 
 	if err != nil {
 		t.Errorf("Erro ao atualizar card: %v", err)

@@ -3,6 +3,7 @@ package database
 import (
 	"testing"
 
+	"github.com/MundoInvest/backend/internal/shared/config"
 	"github.com/MundoInvest/backend/internal/shared/logger"
 )
 
@@ -14,7 +15,7 @@ func TestNovaConexaoSucesso(t *testing.T) {
 	// Este teste requer variáveis de ambiente configuradas
 	// Para executar: export DB_HOST=localhost DB_PORT=5434 DB_USER=postgres DB_PASSWORD=postgres DB_NAME=mundo_invest
 
-	config := ConfiguracaoBancoDados{
+	configDB := ConfiguracaoBancoDados{
 		Host:    "localhost",
 		Port:    "5434",
 		Usuario: "postgres",
@@ -23,7 +24,8 @@ func TestNovaConexaoSucesso(t *testing.T) {
 		SSLMode: "disable",
 	}
 
-	db, err := NovoBancoDados(config)
+	cfg := config.Load()
+	db, err := NovoBancoDados(configDB, cfg)
 	if err != nil {
 		t.Skipf("Teste de integração pulado: não foi possível conectar ao banco de dados: %v", err)
 	}
@@ -37,7 +39,7 @@ func TestNovaConexaoSucesso(t *testing.T) {
 
 // TestNovaConexaoFalha testa falha na conexão
 func TestNovaConexaoFalha(t *testing.T) {
-	config := ConfiguracaoBancoDados{
+	configDB := ConfiguracaoBancoDados{
 		Host:    "localhost",
 		Port:    "9999", // Porta inválida
 		Usuario: "postgres",
@@ -46,7 +48,8 @@ func TestNovaConexaoFalha(t *testing.T) {
 		SSLMode: "disable",
 	}
 
-	_, err := NovoBancoDados(config)
+	cfg := config.Load()
+	_, err := NovoBancoDados(configDB, cfg)
 	if err == nil {
 		t.Error("Esperado erro ao conectar com porta inválida, mas não houve erro")
 	}
@@ -66,7 +69,8 @@ func TestNovaConexaoVariaveisAmbiente(t *testing.T) {
 	t.Setenv("DB_NAME", "mundo_invest")
 	t.Setenv("DB_SSLMODE", "disable")
 
-	db, err := NovaConexao()
+	cfg := config.Load()
+	db, err := NovaConexao(cfg)
 	if err != nil {
 		t.Skipf("Teste de integração pulado: não foi possível conectar ao banco de dados: %v", err)
 	}
@@ -80,7 +84,7 @@ func TestNovaConexaoVariaveisAmbiente(t *testing.T) {
 
 // TestTransacaoAtômica testa se transações são atômicas
 func TestTransacaoAtômica(t *testing.T) {
-	config := ConfiguracaoBancoDados{
+	configDB := ConfiguracaoBancoDados{
 		Host:    "localhost",
 		Port:    "5434",
 		Usuario: "postgres",
@@ -89,7 +93,8 @@ func TestTransacaoAtômica(t *testing.T) {
 		SSLMode: "disable",
 	}
 
-	db, err := NovoBancoDados(config)
+	cfg := config.Load()
+	db, err := NovoBancoDados(configDB, cfg)
 	if err != nil {
 		t.Skipf("Teste de integração pulado: não foi possível conectar ao banco de dados: %v", err)
 	}
@@ -130,7 +135,7 @@ func TestTransacaoAtômica(t *testing.T) {
 
 // TestRestricaoUnicidade testa restrição de unicidade de email
 func TestRestricaoUnicidade(t *testing.T) {
-	config := ConfiguracaoBancoDados{
+	configDB := ConfiguracaoBancoDados{
 		Host:    "localhost",
 		Port:    "5434",
 		Usuario: "postgres",
@@ -139,7 +144,8 @@ func TestRestricaoUnicidade(t *testing.T) {
 		SSLMode: "disable",
 	}
 
-	db, err := NovoBancoDados(config)
+	cfg := config.Load()
+	db, err := NovoBancoDados(configDB, cfg)
 	if err != nil {
 		t.Skipf("Teste de integração pulado: não foi possível conectar ao banco de dados: %v", err)
 	}
@@ -166,7 +172,7 @@ func TestRestricaoUnicidade(t *testing.T) {
 
 // TestConfiguracaoPoolConexoes testa configuração de pool de conexões
 func TestConfiguracaoPoolConexoes(t *testing.T) {
-	config := ConfiguracaoBancoDados{
+	configDB := ConfiguracaoBancoDados{
 		Host:    "localhost",
 		Port:    "5434",
 		Usuario: "postgres",
@@ -175,7 +181,8 @@ func TestConfiguracaoPoolConexoes(t *testing.T) {
 		SSLMode: "disable",
 	}
 
-	db, err := NovoBancoDados(config)
+	cfg := config.Load()
+	db, err := NovoBancoDados(configDB, cfg)
 	if err != nil {
 		t.Skipf("Teste de integração pulado: não foi possível conectar ao banco de dados: %v", err)
 	}
@@ -195,7 +202,7 @@ func TestConfiguracaoPoolConexoes(t *testing.T) {
 
 // TestIntegracaoSchemas testa se schemas estão criados corretamente
 func TestIntegracaoSchemas(t *testing.T) {
-	config := ConfiguracaoBancoDados{
+	configDB := ConfiguracaoBancoDados{
 		Host:    "localhost",
 		Port:    "5434",
 		Usuario: "postgres",
@@ -204,7 +211,8 @@ func TestIntegracaoSchemas(t *testing.T) {
 		SSLMode: "disable",
 	}
 
-	db, err := NovoBancoDados(config)
+	cfg := config.Load()
+	db, err := NovoBancoDados(configDB, cfg)
 	if err != nil {
 		t.Skipf("Teste de integração pulado: não foi possível conectar ao banco de dados: %v", err)
 	}
@@ -234,7 +242,7 @@ func TestIntegracaoSchemas(t *testing.T) {
 
 // TestIntegracaoTabelas testa se tabelas estão criadas corretamente
 func TestIntegracaoTabelas(t *testing.T) {
-	config := ConfiguracaoBancoDados{
+	configDB := ConfiguracaoBancoDados{
 		Host:    "localhost",
 		Port:    "5434",
 		Usuario: "postgres",
@@ -243,7 +251,8 @@ func TestIntegracaoTabelas(t *testing.T) {
 		SSLMode: "disable",
 	}
 
-	db, err := NovoBancoDados(config)
+	cfg := config.Load()
+	db, err := NovoBancoDados(configDB, cfg)
 	if err != nil {
 		t.Skipf("Teste de integração pulado: não foi possível conectar ao banco de dados: %v", err)
 	}
@@ -273,7 +282,7 @@ func TestIntegracaoTabelas(t *testing.T) {
 
 // TestIntegracaoViews testa se views estão criadas corretamente
 func TestIntegracaoViews(t *testing.T) {
-	config := ConfiguracaoBancoDados{
+	configDB := ConfiguracaoBancoDados{
 		Host:    "localhost",
 		Port:    "5434",
 		Usuario: "postgres",
@@ -282,7 +291,8 @@ func TestIntegracaoViews(t *testing.T) {
 		SSLMode: "disable",
 	}
 
-	db, err := NovoBancoDados(config)
+	cfg := config.Load()
+	db, err := NovoBancoDados(configDB, cfg)
 	if err != nil {
 		t.Skipf("Teste de integração pulado: não foi possível conectar ao banco de dados: %v", err)
 	}
@@ -302,7 +312,7 @@ func TestIntegracaoViews(t *testing.T) {
 
 // TestIntegracaoSequencias testa se sequências estão criadas corretamente
 func TestIntegracaoSequencias(t *testing.T) {
-	config := ConfiguracaoBancoDados{
+	configDB := ConfiguracaoBancoDados{
 		Host:    "localhost",
 		Port:    "5434",
 		Usuario: "postgres",
@@ -311,7 +321,8 @@ func TestIntegracaoSequencias(t *testing.T) {
 		SSLMode: "disable",
 	}
 
-	db, err := NovoBancoDados(config)
+	cfg := config.Load()
+	db, err := NovoBancoDados(configDB, cfg)
 	if err != nil {
 		t.Skipf("Teste de integração pulado: não foi possível conectar ao banco de dados: %v", err)
 	}

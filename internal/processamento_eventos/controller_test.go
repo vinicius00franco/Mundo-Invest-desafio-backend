@@ -5,13 +5,14 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
 	"github.com/MundoInvest/backend/internal/dominio"
+	"github.com/MundoInvest/backend/internal/shared/config"
+	"github.com/MundoInvest/backend/internal/shared/errors"
 )
 
 // MockWebhookService é um mock do WebhookService para testes
@@ -29,7 +30,7 @@ func (m *MockWebhookService) ProcessarWebhook(ctx context.Context, request Webho
 		return m.erro
 	}
 	if !m.clienteExistente {
-		return sql.ErrNoRows
+		return errors.NewNotFoundError("cliente", request.ClienteEmail)
 	}
 	return nil
 }
@@ -39,7 +40,7 @@ func TestProcessarWebhookHandler_PrioridadeAlta(t *testing.T) {
 	mockService := &MockWebhookService{
 		clienteExistente: true,
 	}
-	controller := NovoWebhookController(mockService)
+	controller := NovoEventoController(mockService)
 
 	requestBody := WebhookRequest{
 		IdentificadorEvento: "evt_prioridade_alta",
@@ -76,7 +77,7 @@ func TestProcessarWebhookHandler_PrioridadeNormal(t *testing.T) {
 	mockService := &MockWebhookService{
 		clienteExistente: true,
 	}
-	controller := NovoWebhookController(mockService)
+	controller := NovoEventoController(mockService)
 
 	requestBody := WebhookRequest{
 		IdentificadorEvento: "evt_prioridade_normal",
@@ -113,7 +114,7 @@ func TestProcessarWebhookHandler_Idempotencia(t *testing.T) {
 	mockService := &MockWebhookService{
 		clienteExistente: true,
 	}
-	controller := NovoWebhookController(mockService)
+	controller := NovoEventoController(mockService)
 
 	requestBody := WebhookRequest{
 		IdentificadorEvento: "evt_idempotente",
@@ -155,10 +156,10 @@ func TestProcessarWebhookHandler_ClienteNaoEncontrado(t *testing.T) {
 	// Arrange
 	mockService := &MockWebhookService{
 		processarWebhookFunc: func(ctx context.Context, request WebhookRequest) error {
-			return fmt.Errorf("cliente não encontrado com email %s: %w", request.ClienteEmail, sql.ErrNoRows)
+			return errors.NewNotFoundError("cliente", request.ClienteEmail)
 		},
 	}
-	controller := NovoWebhookController(mockService)
+	controller := NovoEventoController(mockService)
 
 	requestBody := WebhookRequest{
 		IdentificadorEvento: "evt_inexistente",
@@ -188,7 +189,7 @@ func TestProcessarWebhookHandler_ClienteNaoEncontrado(t *testing.T) {
 func TestProcessarWebhookHandler_CampoObrigatorioEventoId(t *testing.T) {
 	// Arrange
 	mockService := &MockWebhookService{}
-	controller := NovoWebhookController(mockService)
+	controller := NovoEventoController(mockService)
 
 	requestBody := WebhookRequest{
 		IdentificadorCard: "card_123",
@@ -217,7 +218,7 @@ func TestProcessarWebhookHandler_CampoObrigatorioEventoId(t *testing.T) {
 func TestProcessarWebhookHandler_CampoObrigatorioCardId(t *testing.T) {
 	// Arrange
 	mockService := &MockWebhookService{}
-	controller := NovoWebhookController(mockService)
+	controller := NovoEventoController(mockService)
 
 	requestBody := WebhookRequest{
 		IdentificadorEvento: "evt_123",
@@ -246,7 +247,7 @@ func TestProcessarWebhookHandler_CampoObrigatorioCardId(t *testing.T) {
 func TestProcessarWebhookHandler_CampoObrigatorioClienteEmail(t *testing.T) {
 	// Arrange
 	mockService := &MockWebhookService{}
-	controller := NovoWebhookController(mockService)
+	controller := NovoEventoController(mockService)
 
 	requestBody := WebhookRequest{
 		IdentificadorEvento: "evt_123",
@@ -275,7 +276,7 @@ func TestProcessarWebhookHandler_CampoObrigatorioClienteEmail(t *testing.T) {
 func TestProcessarWebhookHandler_CampoObrigatorioTimestamp(t *testing.T) {
 	// Arrange
 	mockService := &MockWebhookService{}
-	controller := NovoWebhookController(mockService)
+	controller := NovoEventoController(mockService)
 
 	requestBody := WebhookRequest{
 		IdentificadorEvento: "evt_123",
@@ -304,7 +305,7 @@ func TestProcessarWebhookHandler_CampoObrigatorioTimestamp(t *testing.T) {
 func TestProcessarWebhookHandler_EventIdVazio(t *testing.T) {
 	// Arrange
 	mockService := &MockWebhookService{}
-	controller := NovoWebhookController(mockService)
+	controller := NovoEventoController(mockService)
 
 	requestBody := WebhookRequest{
 		IdentificadorEvento: "",
@@ -334,7 +335,7 @@ func TestProcessarWebhookHandler_EventIdVazio(t *testing.T) {
 func TestProcessarWebhookHandler_CardIdVazio(t *testing.T) {
 	// Arrange
 	mockService := &MockWebhookService{}
-	controller := NovoWebhookController(mockService)
+	controller := NovoEventoController(mockService)
 
 	requestBody := WebhookRequest{
 		IdentificadorEvento: "evt_123",
@@ -364,7 +365,7 @@ func TestProcessarWebhookHandler_CardIdVazio(t *testing.T) {
 func TestProcessarWebhookHandler_ClienteEmailVazio(t *testing.T) {
 	// Arrange
 	mockService := &MockWebhookService{}
-	controller := NovoWebhookController(mockService)
+	controller := NovoEventoController(mockService)
 
 	requestBody := WebhookRequest{
 		IdentificadorEvento: "evt_123",
@@ -394,7 +395,7 @@ func TestProcessarWebhookHandler_ClienteEmailVazio(t *testing.T) {
 func TestProcessarWebhookHandler_EmailInvalido(t *testing.T) {
 	// Arrange
 	mockService := &MockWebhookService{}
-	controller := NovoWebhookController(mockService)
+	controller := NovoEventoController(mockService)
 
 	requestBody := WebhookRequest{
 		IdentificadorEvento: "evt_123",
@@ -424,7 +425,7 @@ func TestProcessarWebhookHandler_EmailInvalido(t *testing.T) {
 func TestProcessarWebhookHandler_TimestampInvalido(t *testing.T) {
 	// Arrange
 	mockService := &MockWebhookService{}
-	controller := NovoWebhookController(mockService)
+	controller := NovoEventoController(mockService)
 
 	requestBody := WebhookRequest{
 		IdentificadorEvento: "evt_123",
@@ -456,7 +457,7 @@ func TestProcessarWebhookHandler_ErroBancoDados(t *testing.T) {
 	mockService := &MockWebhookService{
 		erro: sql.ErrConnDone,
 	}
-	controller := NovoWebhookController(mockService)
+	controller := NovoEventoController(mockService)
 
 	requestBody := WebhookRequest{
 		IdentificadorEvento: "evt_123",
@@ -482,7 +483,7 @@ func TestProcessarWebhookHandler_ErroBancoDados(t *testing.T) {
 func TestProcessarWebhookHandler_MetodoNaoPermitido(t *testing.T) {
 	// Arrange
 	mockService := &MockWebhookService{}
-	controller := NovoWebhookController(mockService)
+	controller := NovoEventoController(mockService)
 
 	req := httptest.NewRequest(http.MethodGet, "/webhooks/pipefy/card-updated", nil)
 	w := httptest.NewRecorder()
@@ -499,7 +500,7 @@ func TestProcessarWebhookHandler_MetodoNaoPermitido(t *testing.T) {
 func TestProcessarWebhookHandler_JSONInvalido(t *testing.T) {
 	// Arrange
 	mockService := &MockWebhookService{}
-	controller := NovoWebhookController(mockService)
+	controller := NovoEventoController(mockService)
 
 	req := httptest.NewRequest(http.MethodPost, "/webhooks/pipefy/card-updated", bytes.NewBufferString("json-invalido"))
 	req.Header.Set("Content-Type", "application/json")
@@ -520,7 +521,7 @@ func TestProcessarWebhookHandler_PrioridadeNoLimite(t *testing.T) {
 	mockService := &MockWebhookService{
 		clienteExistente: true,
 	}
-	controller := NovoWebhookController(mockService)
+	controller := NovoEventoController(mockService)
 
 	requestBody := WebhookRequest{
 		IdentificadorEvento: "evt_limite",
@@ -575,7 +576,7 @@ func TestProcessarWebhookHandler_IntegracaoBancoDados(t *testing.T) {
 	// db := setupTestDB(t)
 	// defer teardownTestDB(t, db)
 
-	// controller := NovoWebhookControllerComDB(db)
+	// controller := NovoEventoControllerComDB(db)
 
 	// ... implementar teste de integração
 	t.Skip("Teste de integração requer banco de dados real - executar com -tags=integration")
@@ -583,7 +584,8 @@ func TestProcessarWebhookHandler_IntegracaoBancoDados(t *testing.T) {
 
 // Teste unitário do PrioridadeCalculator
 func TestPrioridadeCalculator_CalcularNivelPrioridade(t *testing.T) {
-	calculator := dominio.NovoPrioridadeCalculator()
+	cfg := config.Load()
+	calculator := dominio.NovoPrioridadeCalculator(cfg)
 
 	tests := []struct {
 		name       string

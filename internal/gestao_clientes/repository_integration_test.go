@@ -1,10 +1,12 @@
 package gestao_clientes
 
 import (
+	"context"
 	"database/sql"
 	"testing"
 	"time"
 
+	"github.com/MundoInvest/backend/internal/shared/config"
 	_ "github.com/lib/pq"
 )
 
@@ -25,7 +27,8 @@ func TestRepositoryIntegracao_Salvar(t *testing.T) {
 	}
 	defer db.Close()
 
-	repository := NovoClienteRepository(db)
+	cfg := config.Load()
+	repository := NovoClienteRepository(db, cfg)
 
 	// Criar cliente de teste
 	cliente := Cliente{
@@ -41,7 +44,7 @@ func TestRepositoryIntegracao_Salvar(t *testing.T) {
 	}
 
 	// Salvar cliente
-	salvo, err := repository.Salvar(cliente)
+	salvo, err := repository.Salvar(context.Background(), cliente)
 	if err != nil {
 		t.Fatalf("Erro ao salvar cliente: %v", err)
 	}
@@ -63,7 +66,8 @@ func TestRepositoryIntegracao_BuscarPorEmail(t *testing.T) {
 	}
 	defer db.Close()
 
-	repository := NovoClienteRepository(db)
+	cfg := config.Load()
+	repository := NovoClienteRepository(db, cfg)
 
 	// Criar cliente de teste
 	cliente := Cliente{
@@ -78,13 +82,13 @@ func TestRepositoryIntegracao_BuscarPorEmail(t *testing.T) {
 		DataAtualizacao:      time.Now(),
 	}
 
-	salvo, err := repository.Salvar(cliente)
+	salvo, err := repository.Salvar(context.Background(), cliente)
 	if err != nil {
 		t.Fatalf("Erro ao salvar cliente: %v", err)
 	}
 
 	// Buscar por email
-	encontrado, err := repository.BuscarPorEmail("teste.busca@example.com")
+	encontrado, err := repository.BuscarPorEmail(context.Background(), "teste.busca@example.com")
 	if err != nil {
 		t.Fatalf("Erro ao buscar por email: %v", err)
 	}
@@ -105,7 +109,8 @@ func TestRepositoryIntegracao_Atualizar(t *testing.T) {
 	}
 	defer db.Close()
 
-	repository := NovoClienteRepository(db)
+	cfg := config.Load()
+	repository := NovoClienteRepository(db, cfg)
 
 	// Criar cliente de teste
 	cliente := Cliente{
@@ -120,7 +125,7 @@ func TestRepositoryIntegracao_Atualizar(t *testing.T) {
 		DataAtualizacao:      time.Now(),
 	}
 
-	salvo, err := repository.Salvar(cliente)
+	salvo, err := repository.Salvar(context.Background(), cliente)
 	if err != nil {
 		t.Fatalf("Erro ao salvar cliente: %v", err)
 	}
@@ -130,13 +135,13 @@ func TestRepositoryIntegracao_Atualizar(t *testing.T) {
 	salvo.Status = "Processado"
 	salvo.NivelPrioridade = "prioridade_normal"
 
-	err = repository.Atualizar(*salvo)
+	err = repository.Atualizar(context.Background(), *salvo)
 	if err != nil {
 		t.Fatalf("Erro ao atualizar cliente: %v", err)
 	}
 
 	// Verificar atualização
-	atualizado, err := repository.BuscarPorIdentificadorInterno(salvo.IdentificadorInterno)
+	atualizado, err := repository.BuscarPorIdentificadorInterno(context.Background(), salvo.IdentificadorInterno)
 	if err != nil {
 		t.Fatalf("Erro ao buscar cliente atualizado: %v", err)
 	}

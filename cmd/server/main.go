@@ -2,12 +2,12 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/MundoInvest/backend/internal/gestao_clientes"
-	"github.com/MundoInvest/backend/internal/processamento_eventos"
-	"github.com/MundoInvest/backend/internal/shared/database"
+	"github.com/MundoInvest/backend/internal/server"
+	"github.com/MundoInvest/backend/internal/shared/config"
 	"github.com/MundoInvest/backend/internal/shared/logger"
 )
 
@@ -15,44 +15,38 @@ func main() {
 	// Inicializar logger
 	logger.Init()
 
-	// Configurar conexão com banco de dados
-	db, err := database.NovaConexao()
+	// Carregar configuração
+	cfg := config.Load()
+
+	// Criar servidor com dependency injection
+	srv, err := server.NewServer(cfg)
 	if err != nil {
-		log.Fatalf("Erro ao conectar ao banco de dados: %v", err)
-	}
-	defer db.Close()
-
-	// Obter PIPE_ID das variáveis de ambiente
-	pipeID := os.Getenv("PIPEFY_PIPE_ID")
-	if pipeID == "" {
-		pipeID = "DEFAULT_PIPE_ID" // Valor padrão para desenvolvimento
-		log.Println("AVISO: PIPEFY_PIPE_ID não definido, usando valor padrão")
+		log.Fatalf("Erro ao criar servidor: %v", err)
 	}
 
-	// Criar controller de clientes
-	clienteController := gestao_clientes.NovoClienteControllerComDB(db, pipeID)
+	// Configurar graceful shutdown
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
-	// Criar controller de webhooks
-	webhookController := processamento_eventos.NovoWebhookControllerComDB(db)
+	// Iniciar servidor em goroutine
+	go func() {
+		if err := srv.Start(); err != nil {
+			log.Fatalf("Erro ao iniciar servidor: %v", err)
+		}
+	}()
 
-	// Configurar router HTTP
-	mux := http.NewServeMux()
-
-	// Registrar rotas
-	clienteController.RegistrarRotas(mux)
-	webhookController.RegistrarRotas(mux)
-
-	// Configurar servidor
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	log.Printf("Servidor Mundo Invest iniciado na porta %s", port)
+	log.Printf("Servidor Mundo Invest iniciado na porta %s", cfg.HTTP.Port)
 	log.Printf("Endpoint POST /clientes disponível")
 	log.Printf("Endpoint POST /webhooks/pipefy/card-updated disponível")
 
-	if err := http.ListenAndServe(":"+port, mux); err != nil {
-		log.Fatalf("Erro ao iniciar servidor: %v", err)
+	// Aguardar sinal de shutdown
+	<-done
+	log.Println("Recebido sinal de shutdown, encerrando servidor...")
+
+	// Encerrar servidor de forma graciosa
+	if err := srv.Shutdown(cfg.HTTP.IdleTimeout); err != nil {
+		log.Printf("Erro ao encerrar servidor: %v", err)
 	}
+
+	log.Println("Servidor encerrado com sucesso")
 }

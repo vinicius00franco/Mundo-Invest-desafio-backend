@@ -1,9 +1,12 @@
 package processamento_eventos
 
 import (
+	"context"
 	"database/sql"
-	"fmt"
 	"time"
+
+	"github.com/MundoInvest/backend/internal/shared/config"
+	"github.com/MundoInvest/backend/internal/shared/errors"
 )
 
 // Evento representa a entidade Evento do contexto de processamento de eventos
@@ -20,24 +23,31 @@ type Evento struct {
 
 // EventoRepository define a interface para operações de persistência de eventos
 type EventoRepository interface {
-	Salvar(evento Evento) (*Evento, error)
-	BuscarPorIdentificadorEvento(identificadorEvento string) (*Evento, error)
-	VerificarFoiProcessado(identificadorEvento string) (bool, error)
-	BuscarPorIdentificadorCard(identificadorCard string) ([]Evento, error)
+	Salvar(ctx context.Context, evento Evento) (*Evento, error)
+	BuscarPorIdentificadorEvento(ctx context.Context, identificadorEvento string) (*Evento, error)
+	VerificarFoiProcessado(ctx context.Context, identificadorEvento string) (bool, error)
+	BuscarPorIdentificadorCard(ctx context.Context, identificadorCard string) ([]Evento, error)
 }
 
 // eventoRepository implementa a interface EventoRepository
 type eventoRepository struct {
-	banco *sql.DB
+	banco  *sql.DB
+	config *config.Config
 }
 
 // NovoEventoRepository cria uma nova instância de EventoRepository
-func NovoEventoRepository(banco *sql.DB) EventoRepository {
-	return &eventoRepository{banco: banco}
+func NovoEventoRepository(banco *sql.DB, cfg *config.Config) EventoRepository {
+	return &eventoRepository{
+		banco:  banco,
+		config: cfg,
+	}
 }
 
 // Salvar insere um novo evento no banco de dados
-func (r *eventoRepository) Salvar(evento Evento) (*Evento, error) {
+func (r *eventoRepository) Salvar(ctx context.Context, evento Evento) (*Evento, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.config.Timeouts.Database)
+	defer cancel()
+
 	query := `
 		INSERT INTO processamento_eventos.evento (
 			pev_eve_ide, pev_eve_idc, pev_eve_ema, pev_eve_tms, pev_eve_fpr
@@ -48,7 +58,8 @@ func (r *eventoRepository) Salvar(evento Evento) (*Evento, error) {
 	var identificadorInterno int64
 	var dataCriacao time.Time
 
-	err := r.banco.QueryRow(
+	err := r.banco.QueryRowContext(
+		ctx,
 		query,
 		evento.IdentificadorEvento,
 		evento.IdentificadorCard,
@@ -58,7 +69,10 @@ func (r *eventoRepository) Salvar(evento Evento) (*Evento, error) {
 	).Scan(&identificadorInterno, &dataCriacao)
 
 	if err != nil {
-		return nil, fmt.Errorf("erro ao salvar evento: %w", err)
+		if ctx.Err() == context.DeadlineExceeded {
+			return nil, errors.NewTimeoutError("salvar evento", "timeout ao executar operação de banco de dados")
+		}
+		return nil, errors.NewRepositoryError("salvar evento", err)
 	}
 
 	evento.IdentificadorInterno = identificadorInterno
@@ -68,7 +82,10 @@ func (r *eventoRepository) Salvar(evento Evento) (*Evento, error) {
 }
 
 // BuscarPorIdentificadorEvento busca um evento pelo identificador de evento
-func (r *eventoRepository) BuscarPorIdentificadorEvento(identificadorEvento string) (*Evento, error) {
+func (r *eventoRepository) BuscarPorIdentificadorEvento(ctx context.Context, identificadorEvento string) (*Evento, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.config.Timeouts.Database)
+	defer cancel()
+
 	query := `
 		SELECT 
 			pev_eve_int, pev_eve_ide, pev_eve_idc, pev_eve_ema, 
@@ -80,7 +97,7 @@ func (r *eventoRepository) BuscarPorIdentificadorEvento(identificadorEvento stri
 	var evento Evento
 	var dataAtualizacao sql.NullTime
 
-	err := r.banco.QueryRow(query, identificadorEvento).Scan(
+	err := r.banco.QueryRowContext(ctx, query, identificadorEvento).Scan(
 		&evento.IdentificadorInterno,
 		&evento.IdentificadorEvento,
 		&evento.IdentificadorCard,
@@ -93,9 +110,12 @@ func (r *eventoRepository) BuscarPorIdentificadorEvento(identificadorEvento stri
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("evento não encontrado com identificador %s", identificadorEvento)
+			return nil, errors.NewNotFoundError("evento", identificadorEvento)
 		}
-		return nil, fmt.Errorf("erro ao buscar evento por identificador: %w", err)
+		if ctx.Err() == context.DeadlineExceeded {
+			return nil, errors.NewTimeoutError("buscar evento por identificador", "timeout ao executar operação de banco de dados")
+		}
+		return nil, errors.NewRepositoryError("buscar evento por identificador", err)
 	}
 
 	if dataAtualizacao.Valid {
@@ -106,7 +126,10 @@ func (r *eventoRepository) BuscarPorIdentificadorEvento(identificadorEvento stri
 }
 
 // VerificarFoiProcessado verifica se um evento já foi processado (idempotência)
-func (r *eventoRepository) VerificarFoiProcessado(identificadorEvento string) (bool, error) {
+func (r *eventoRepository) VerificarFoiProcessado(ctx context.Context, identificadorEvento string) (bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.config.Timeouts.Database)
+	defer cancel()
+
 	query := `
 		SELECT pev_eve_fpr
 		FROM processamento_eventos.evento
@@ -115,20 +138,26 @@ func (r *eventoRepository) VerificarFoiProcessado(identificadorEvento string) (b
 
 	var foiProcessado bool
 
-	err := r.banco.QueryRow(query, identificadorEvento).Scan(&foiProcessado)
+	err := r.banco.QueryRowContext(ctx, query, identificadorEvento).Scan(&foiProcessado)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			// Evento não existe, então não foi processado
 			return false, nil
 		}
-		return false, fmt.Errorf("erro ao verificar se evento foi processado: %w", err)
+		if ctx.Err() == context.DeadlineExceeded {
+			return false, errors.NewTimeoutError("verificar se evento foi processado", "timeout ao executar operação de banco de dados")
+		}
+		return false, errors.NewRepositoryError("verificar se evento foi processado", err)
 	}
 
 	return foiProcessado, nil
 }
 
 // BuscarPorIdentificadorCard busca todos os eventos relacionados a um card
-func (r *eventoRepository) BuscarPorIdentificadorCard(identificadorCard string) ([]Evento, error) {
+func (r *eventoRepository) BuscarPorIdentificadorCard(ctx context.Context, identificadorCard string) ([]Evento, error) {
+	ctx, cancel := context.WithTimeout(ctx, r.config.Timeouts.Database)
+	defer cancel()
+
 	query := `
 		SELECT 
 			pev_eve_int, pev_eve_ide, pev_eve_idc, pev_eve_ema, 
@@ -138,9 +167,12 @@ func (r *eventoRepository) BuscarPorIdentificadorCard(identificadorCard string) 
 		ORDER BY pev_eve_dcr DESC
 	`
 
-	linhas, err := r.banco.Query(query, identificadorCard)
+	linhas, err := r.banco.QueryContext(ctx, query, identificadorCard)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao buscar eventos por identificador de card: %w", err)
+		if ctx.Err() == context.DeadlineExceeded {
+			return nil, errors.NewTimeoutError("buscar eventos por identificador de card", "timeout ao executar operação de banco de dados")
+		}
+		return nil, errors.NewRepositoryError("buscar eventos por identificador de card", err)
 	}
 	defer linhas.Close()
 
@@ -160,7 +192,7 @@ func (r *eventoRepository) BuscarPorIdentificadorCard(identificadorCard string) 
 			&dataAtualizacao,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("erro ao escanear evento: %w", err)
+			return nil, errors.NewRepositoryError("escanear evento", err)
 		}
 
 		if dataAtualizacao.Valid {
@@ -171,7 +203,7 @@ func (r *eventoRepository) BuscarPorIdentificadorCard(identificadorCard string) 
 	}
 
 	if err = linhas.Err(); err != nil {
-		return nil, fmt.Errorf("erro ao iterar sobre eventos: %w", err)
+		return nil, errors.NewRepositoryError("iterar sobre eventos", err)
 	}
 
 	return eventos, nil

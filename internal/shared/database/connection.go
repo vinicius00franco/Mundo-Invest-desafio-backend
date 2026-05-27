@@ -4,9 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
-	"time"
 
-	"github.com/MundoInvest/backend/internal/dominio"
+	"github.com/MundoInvest/backend/internal/shared/config"
 	"github.com/MundoInvest/backend/internal/shared/logger"
 	_ "github.com/lib/pq"
 )
@@ -22,15 +21,15 @@ type ConfiguracaoBancoDados struct {
 }
 
 // NovoBancoDados cria uma nova conexão com o banco de dados PostgreSQL
-func NovoBancoDados(config ConfiguracaoBancoDados) (*sql.DB, error) {
+func NovoBancoDados(cfg ConfiguracaoBancoDados, appConfig *config.Config) (*sql.DB, error) {
 	stringConexao := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		config.Host,
-		config.Port,
-		config.Usuario,
-		config.Senha,
-		config.Banco,
-		config.SSLMode,
+		cfg.Host,
+		cfg.Port,
+		cfg.Usuario,
+		cfg.Senha,
+		cfg.Banco,
+		cfg.SSLMode,
 	)
 
 	banco, err := sql.Open("postgres", stringConexao)
@@ -42,20 +41,20 @@ func NovoBancoDados(config ConfiguracaoBancoDados) (*sql.DB, error) {
 		return nil, fmt.Errorf("erro ao testar conexão com banco de dados: %w", err)
 	}
 
-	banco.SetMaxOpenConns(dominio.MaxOpenConns)
-	banco.SetMaxIdleConns(dominio.MaxIdleConns)
-	banco.SetConnMaxLifetime(time.Duration(dominio.ConnMaxLifetime) * time.Second)
-	banco.SetConnMaxIdleTime(time.Duration(dominio.ConnMaxIdleTime) * time.Second)
+	banco.SetMaxOpenConns(appConfig.Database.MaxOpenConns)
+	banco.SetMaxIdleConns(appConfig.Database.MaxIdleConns)
+	banco.SetConnMaxLifetime(appConfig.Database.ConnMaxLifetime)
+	banco.SetConnMaxIdleTime(appConfig.Database.ConnMaxIdleTime)
 
 	logger.Info("Conexão com banco de dados estabelecida com sucesso",
-		"host", config.Host,
-		"database", config.Banco,
+		"host", cfg.Host,
+		"database", cfg.Banco,
 	)
 	return banco, nil
 }
 
 // NovaConexao cria uma nova conexão com o banco de dados usando variáveis de ambiente
-func NovaConexao() (*sql.DB, error) {
+func NovaConexao(appConfig *config.Config) (*sql.DB, error) {
 	config := ConfiguracaoBancoDados{
 		Host:    getEnv("DB_HOST", "localhost"),
 		Port:    getEnv("DB_PORT", "5432"),
@@ -65,7 +64,7 @@ func NovaConexao() (*sql.DB, error) {
 		SSLMode: getEnv("DB_SSLMODE", "disable"),
 	}
 
-	return NovoBancoDados(config)
+	return NovoBancoDados(config, appConfig)
 }
 
 // getEnv obtém valor de variável de ambiente ou retorna valor padrão

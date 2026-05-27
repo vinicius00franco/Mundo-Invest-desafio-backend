@@ -2,12 +2,13 @@ package processamento_eventos
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/MundoInvest/backend/internal/dominio"
 	"github.com/MundoInvest/backend/internal/gestao_clientes"
 	"github.com/MundoInvest/backend/internal/integracao_pipefy"
+	"github.com/MundoInvest/backend/internal/shared/config"
+	"github.com/MundoInvest/backend/internal/shared/errors"
 )
 
 // WebhookService define a interface para operações de negócio de webhooks
@@ -21,6 +22,7 @@ type webhookService struct {
 	clienteRepository    gestao_clientes.ClienteRepository
 	prioridadeCalculator dominio.PrioridadeCalculator
 	pipefyClient         integracao_pipefy.PipefyGraphQLClient
+	config               *config.Config
 }
 
 // NovoWebhookService cria uma nova instância de WebhookService
@@ -29,26 +31,31 @@ func NovoWebhookService(
 	clienteRepository gestao_clientes.ClienteRepository,
 	prioridadeCalculator dominio.PrioridadeCalculator,
 	pipefyClient integracao_pipefy.PipefyGraphQLClient,
+	cfg *config.Config,
 ) WebhookService {
 	return &webhookService{
 		eventoRepository:     eventoRepository,
 		clienteRepository:    clienteRepository,
 		prioridadeCalculator: prioridadeCalculator,
 		pipefyClient:         pipefyClient,
+		config:               cfg,
 	}
 }
 
 // ProcessarWebhook processa um webhook do Pipefy de forma idempotente
 func (s *webhookService) ProcessarWebhook(ctx context.Context, request WebhookRequest) error {
+	ctx, cancel := context.WithTimeout(ctx, s.config.Timeouts.Default)
+	defer cancel()
+
 	// Validar o payload
 	if err := ValidarWebhookRequest(request); err != nil {
-		return fmt.Errorf("erro de validação: %w", err)
+		return errors.NewValidationError("", err.Error())
 	}
 
 	// Verificar idempotência: se o evento já foi processado, retornar sucesso
-	foiProcessado, err := s.eventoRepository.VerificarFoiProcessado(request.IdentificadorEvento)
+	foiProcessado, err := s.eventoRepository.VerificarFoiProcessado(ctx, request.IdentificadorEvento)
 	if err != nil {
-		return fmt.Errorf("erro ao verificar idempotência: %w", err)
+		return errors.NewServiceError("WebhookService", "erro ao verificar idempotência", err)
 	}
 
 	if foiProcessado {
@@ -57,9 +64,9 @@ func (s *webhookService) ProcessarWebhook(ctx context.Context, request WebhookRe
 	}
 
 	// Buscar cliente por email
-	cliente, err := s.clienteRepository.BuscarPorEmail(request.ClienteEmail)
+	cliente, err := s.clienteRepository.BuscarPorEmail(ctx, request.ClienteEmail)
 	if err != nil {
-		return fmt.Errorf("cliente não encontrado com email %s: %w", request.ClienteEmail, err)
+		return errors.NewServiceError("WebhookService", "cliente não encontrado com email "+request.ClienteEmail, err)
 	}
 
 	// Calcular nível de prioridade baseado no patrimônio
@@ -70,8 +77,8 @@ func (s *webhookService) ProcessarWebhook(ctx context.Context, request WebhookRe
 	cliente.NivelPrioridade = nivelPrioridade
 	cliente.DataAtualizacao = time.Now()
 
-	if err := s.clienteRepository.Atualizar(*cliente); err != nil {
-		return fmt.Errorf("erro ao atualizar cliente: %w", err)
+	if err := s.clienteRepository.Atualizar(ctx, *cliente); err != nil {
+		return errors.NewServiceError("WebhookService", "erro ao atualizar cliente", err)
 	}
 
 	// Estruturar mutation updateCard
@@ -84,7 +91,7 @@ func (s *webhookService) ProcessarWebhook(ctx context.Context, request WebhookRe
 
 	mutation, err := s.pipefyClient.EstruturarMutationUpdateCard(request.IdentificadorCard, fieldsAttributes)
 	if err != nil {
-		return fmt.Errorf("erro ao estruturar mutation updateCard: %w", err)
+		return errors.NewIntegrationError("Pipefy", "erro ao estruturar mutation updateCard", err)
 	}
 
 	// Simular envio da mutation (sem requisição real)
@@ -94,7 +101,7 @@ func (s *webhookService) ProcessarWebhook(ctx context.Context, request WebhookRe
 	// Salvar evento como processado
 	timestampEvento, err := time.Parse(time.RFC3339, request.DataEvento)
 	if err != nil {
-		return fmt.Errorf("erro ao parsear data do evento: %w", err)
+		return errors.NewServiceError("WebhookService", "erro ao parsear data do evento", err)
 	}
 
 	evento := Evento{
@@ -107,8 +114,8 @@ func (s *webhookService) ProcessarWebhook(ctx context.Context, request WebhookRe
 		DataAtualizacao:     nil, // Field is nullable
 	}
 
-	if _, err := s.eventoRepository.Salvar(evento); err != nil {
-		return fmt.Errorf("erro ao salvar evento: %w", err)
+	if _, err := s.eventoRepository.Salvar(ctx, evento); err != nil {
+		return errors.NewServiceError("WebhookService", "erro ao salvar evento", err)
 	}
 
 	return nil

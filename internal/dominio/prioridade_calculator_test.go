@@ -3,10 +3,21 @@ package dominio
 import (
 	"fmt"
 	"testing"
+
+	"github.com/MundoInvest/backend/internal/shared/config"
 )
 
+func setupTestConfig() *config.Config {
+	return &config.Config{
+		Business: config.BusinessConfig{
+			LimitePrioridadeAlta: 200000.00,
+		},
+	}
+}
+
 func TestPrioridadeCalculator_CalcularNivelPrioridade(t *testing.T) {
-	calculator := NovoPrioridadeCalculator()
+	cfg := setupTestConfig()
+	calculator := NovoPrioridadeCalculator(cfg)
 
 	tests := []struct {
 		name       string
@@ -33,12 +44,27 @@ func TestPrioridadeCalculator_CalcularNivelPrioridade(t *testing.T) {
 }
 
 func TestPrioridadeCalculator_CalcularNivelPrioridadeComDetalhes(t *testing.T) {
-	// Skip test for now as method was removed in refactor
-	t.Skip("CalcularNivelPrioridadeComDetalhes não está disponível na versão atual")
+	cfg := setupTestConfig()
+	calculator := NovoPrioridadeCalculator(cfg)
+
+	// Type assert to concrete type to test implementation details
+	concreteCalc, ok := calculator.(*prioridadeCalculator)
+	if !ok {
+		t.Fatal("Não foi possível fazer type assert para prioridadeCalculator")
+	}
+
+	resultado, detalhes := concreteCalc.CalcularNivelPrioridadeComDetalhes(250000.00)
+	if resultado != PrioridadeAlta {
+		t.Errorf("Resultado esperado %s, obtido %s", PrioridadeAlta, resultado)
+	}
+	if detalhes == "" {
+		t.Error("Detalhes não deveriam ser vazios")
+	}
 }
 
 func TestPrioridadeCalculator_EhPrioridadeAlta(t *testing.T) {
-	calculator := NovoPrioridadeCalculator()
+	cfg := setupTestConfig()
+	calculator := NovoPrioridadeCalculator(cfg)
 
 	tests := []struct {
 		patrimonio float64
@@ -66,7 +92,8 @@ func TestPrioridadeCalculator_EhPrioridadeAlta(t *testing.T) {
 }
 
 func TestPrioridadeCalculator_EhPrioridadeNormal(t *testing.T) {
-	calculator := NovoPrioridadeCalculator()
+	cfg := setupTestConfig()
+	calculator := NovoPrioridadeCalculator(cfg)
 
 	tests := []struct {
 		patrimonio float64
@@ -94,7 +121,8 @@ func TestPrioridadeCalculator_EhPrioridadeNormal(t *testing.T) {
 }
 
 func TestPrioridadeCalculator_ValidarLimitePrioridadeAlta(t *testing.T) {
-	calculator := NovoPrioridadeCalculator()
+	cfg := setupTestConfig()
+	calculator := NovoPrioridadeCalculator(cfg)
 
 	// Type assert to concrete type to test implementation details
 	concreteCalc, ok := calculator.(*prioridadeCalculator)
@@ -108,12 +136,28 @@ func TestPrioridadeCalculator_ValidarLimitePrioridadeAlta(t *testing.T) {
 	}
 }
 
-func TestConstantes(t *testing.T) {
-	// Testar se as constantes estão definidas corretamente
-	if LimitePrioridadeAlta != 200000.00 {
-		t.Errorf("LimitePrioridadeAlta esperado 200000.00, obtido %.2f", LimitePrioridadeAlta)
+func TestPrioridadeCalculator_ConfigCustomizado(t *testing.T) {
+	customCfg := &config.Config{
+		Business: config.BusinessConfig{
+			LimitePrioridadeAlta: 150000.00,
+		},
+	}
+	calculator := NovoPrioridadeCalculator(customCfg)
+
+	// Testar com limite customizado
+	resultado := calculator.CalcularNivelPrioridade(140000.00)
+	if resultado != PrioridadeNormal {
+		t.Errorf("Com limite customizado de 150000, patrimonio 140000 deveria ser normal, obtido %s", resultado)
 	}
 
+	resultado = calculator.CalcularNivelPrioridade(160000.00)
+	if resultado != PrioridadeAlta {
+		t.Errorf("Com limite customizado de 150000, patrimonio 160000 deveria ser alta, obtido %s", resultado)
+	}
+}
+
+func TestConstantes(t *testing.T) {
+	// Testar se as constantes estão definidas corretamente
 	if PrioridadeAlta != "prioridade_alta" {
 		t.Errorf("PrioridadeAlta esperado 'prioridade_alta', obtido '%s'", PrioridadeAlta)
 	}
