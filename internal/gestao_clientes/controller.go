@@ -41,14 +41,18 @@ func (c *ClienteController) CriarClienteHandler(w http.ResponseWriter, r *http.R
 
 	// Validar o payload
 	if err := ValidarCriarClienteRequest(request); err != nil {
-		http.Error(w, fmt.Sprintf("Erro de validação: %s", err.Error()), http.StatusBadRequest)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(NewErrorResponse(err.Error()))
 		return
 	}
 
 	// Chamar o serviço para criar o cliente
 	cliente, err := c.service.CriarCliente(r.Context(), request)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Erro ao criar cliente: %s", err.Error()), http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(NewErrorResponse(err.Error()))
 		return
 	}
 
@@ -56,17 +60,7 @@ func (c *ClienteController) CriarClienteHandler(w http.ResponseWriter, r *http.R
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
-	response := map[string]interface{}{
-		"mensagem":              "Cliente criado com sucesso",
-		"identificador_interno": cliente.IdentificadorInterno,
-		"identificador_externo": cliente.IdentificadorExterno,
-		"nome":                  cliente.Nome,
-		"email":                 cliente.Email,
-		"valor_patrimonio":      cliente.ValorPatrimonio,
-		"tipo_solicitacao":      cliente.TipoSolicitacao,
-		"status":                cliente.Status,
-		"data_criacao":          cliente.DataCriacao,
-	}
+	response := NewCriarClienteResponse(cliente)
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, fmt.Sprintf("Erro ao gerar resposta: %s", err.Error()), http.StatusInternalServerError)

@@ -49,6 +49,10 @@ func ValidarNome(nome string) error {
 		return errors.New("nome é obrigatório")
 	}
 
+	if len(strings.TrimSpace(nome)) < 3 {
+		return errors.New("nome deve ter pelo menos 3 caracteres")
+	}
+
 	return nil
 }
 
@@ -86,6 +90,8 @@ func ValidarCriarClienteRequestDetalhado(request CriarClienteRequest) []*ErroVal
 
 	if strings.TrimSpace(request.Nome) == "" {
 		erros = append(erros, NewErroValidacao("nome", "nome é obrigatório"))
+	} else if len(strings.TrimSpace(request.Nome)) < 3 {
+		erros = append(erros, NewErroValidacao("nome", "nome deve ter pelo menos 3 caracteres"))
 	}
 
 	if strings.TrimSpace(request.Email) == "" {

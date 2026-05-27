@@ -1,0 +1,117 @@
+========================================
+TESTES DE CENÁRIOS DE FALHA
+Data: qua 27 mai 2026 12:57:47 -03
+========================================
+
+=== CENÁRIO 1: Criar cliente sem campo cliente_nome ===
+Descrição: Tentar criar cliente sem fornecer o campo cliente_nome
+
+Payload enviado:
+{
+  "email": "joao.silva@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 250000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 400
+Resposta JSON:
+{
+  "erro": "erros de validação: nome é obrigatório"
+}
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 2: Criar cliente sem campo tipo_solicitacao ===
+Descrição: Tentar criar cliente sem fornecer o campo tipo_solicitacao
+
+Payload enviado:
+{
+  "nome": "João Silva",
+  "email": "joao.silva@example.com",
+  "valor_patrimonio": 250000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 400
+Resposta JSON:
+{
+  "erro": "erros de validação: tipo_solicitacao é obrigatório"
+}
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 3: Criar cliente sem campo valor_patrimonio ===
+Descrição: Tentar criar cliente sem fornecer o campo valor_patrimonio
+
+Payload enviado:
+{
+  "nome": "João Silva",
+  "email": "joao.silva@example.com",
+  "tipo_solicitacao": "Atualização cadastral"
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 400
+Resposta JSON:
+{
+  "erro": "erros de validação: valor_patrimonio deve ser positivo"
+}
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 4: Criar cliente sem campo cliente_email ===
+Descrição: Tentar criar cliente sem fornecer o campo cliente_email
+
+Payload enviado:
+{
+  "nome": "João Silva",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 250000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 400
+Resposta JSON:
+{
+  "erro": "erros de validação: email é obrigatório"
+}
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 5: Criar cliente com erro de banco de dados ===
+Descrição: Tentar criar cliente quando banco de dados está indisponível
+Nota: Este cenário requer que o banco de dados esteja parado
+Para testar: docker-compose stop postgres
+
+Payload enviado:
+{
+  "nome": "João Silva",
+  "email": "joao.silva@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 250000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 500
+Resposta JSON:
+{
+  "erro": "erro ao salvar cliente: erro ao salvar cliente: pq: duplicate key value violates unique constraint \"uk_gcl_cli_ema\" (23505)"
+}
+
+Verificações:
+✓ HTTP 500 Internal Server Error - PASSOU
+
+========================================
+FIM DOS TESTES DE FALHA
+Resultado salvo em: ./scripts/exports/cenarios_falha_20260527_125747.txt
+========================================

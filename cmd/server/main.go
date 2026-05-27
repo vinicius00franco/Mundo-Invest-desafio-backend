@@ -8,9 +8,13 @@ import (
 	"github.com/MundoInvest/backend/internal/gestao_clientes"
 	"github.com/MundoInvest/backend/internal/processamento_eventos"
 	"github.com/MundoInvest/backend/internal/shared/database"
+	"github.com/MundoInvest/backend/internal/shared/logger"
 )
 
 func main() {
+	// Inicializar logger
+	logger.Init()
+
 	// Configurar conexão com banco de dados
 	db, err := database.NovaConexao()
 	if err != nil {

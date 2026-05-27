@@ -34,6 +34,8 @@ func (s *ClienteValidationStrategy) Validate(obj interface{}) error {
 	// Validar nome
 	if strings.TrimSpace(request.Nome) == "" {
 		erros = append(erros, "nome é obrigatório")
+	} else if len(strings.TrimSpace(request.Nome)) < 3 {
+		erros = append(erros, "nome deve ter pelo menos 3 caracteres")
 	}
 
 	// Validar email

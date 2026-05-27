@@ -111,5 +111,5 @@ func (s *clienteService) CriarCliente(ctx context.Context, request CriarClienteR
 func gerarIdentificadorCardSimulado() string {
 	// Simulação de geração de card_id
 	// Em produção, isso seria retornado pelo Pipefy após criar o card
-	return fmt.Sprintf("card_%d", time.Now().UnixNano())
+	return fmt.Sprintf("card_%d", time.Now().Unix())
 }

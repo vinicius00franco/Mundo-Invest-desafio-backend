@@ -2,6 +2,7 @@ package integracao_pipefy
 
 import (
 	"fmt"
+	"time"
 )
 
 // PipefyGraphQLClient define a interface para integração com Pipefy via GraphQL
@@ -115,7 +116,8 @@ func (c *pipefyGraphQLClient) ExecutarMutation(mutation string) (string, error) 
 	// }
 	// return string(body), nil
 
-	return fmt.Sprintf("Mutation executada (simulada): %s", mutation), nil
+	// Simular retorno de card ID curto para testes
+	return fmt.Sprintf("card_%d", time.Now().Unix()), nil
 }
 
 // formatarFieldsAttributes formata os atributos de campos para a mutation
