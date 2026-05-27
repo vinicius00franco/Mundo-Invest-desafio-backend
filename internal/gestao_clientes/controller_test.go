@@ -12,13 +12,13 @@ import (
 
 // MockClienteService é um mock do ClienteService para testes
 type MockClienteService struct {
-	criarClienteFunc func(ctx context.Context, request CriarClienteRequest) (*Cliente, error)
+	criarClienteFunc func(ctx context.Context, requisicao RequisicaoCriarCliente) (*Cliente, error)
 	erro             error
 }
 
-func (m *MockClienteService) CriarCliente(ctx context.Context, request CriarClienteRequest) (*Cliente, error) {
+func (m *MockClienteService) CriarCliente(ctx context.Context, requisicao RequisicaoCriarCliente) (*Cliente, error) {
 	if m.criarClienteFunc != nil {
-		return m.criarClienteFunc(ctx, request)
+		return m.criarClienteFunc(ctx, requisicao)
 	}
 	if m.erro != nil {
 		return nil, m.erro
@@ -26,10 +26,10 @@ func (m *MockClienteService) CriarCliente(ctx context.Context, request CriarClie
 	return &Cliente{
 		IdentificadorInterno: 1,
 		IdentificadorExterno: "card_123",
-		Nome:                 request.Nome,
-		Email:                request.Email,
-		ValorPatrimonio:      request.ValorPatrimonio,
-		TipoSolicitacao:      request.TipoSolicitacao,
+		Nome:                 requisicao.Nome,
+		Email:                requisicao.Email,
+		ValorPatrimonio:      requisicao.ValorPatrimonio,
+		TipoSolicitacao:      requisicao.TipoSolicitacao,
 		Status:               "Aguardando Análise",
 	}, nil
 }
@@ -39,7 +39,7 @@ func TestCriarClienteHandler_PayloadValido(t *testing.T) {
 	mockService := &MockClienteService{}
 	controller := NovoClienteController(mockService)
 
-	requestBody := CriarClienteRequest{
+	requestBody := RequisicaoCriarCliente{
 		Nome:            "João Silva",
 		Email:           "joao.silva@example.com",
 		TipoSolicitacao: "abertura_conta",
@@ -74,7 +74,7 @@ func TestCriarClienteHandler_CampoObrigatorioNome(t *testing.T) {
 	mockService := &MockClienteService{}
 	controller := NovoClienteController(mockService)
 
-	requestBody := CriarClienteRequest{
+	requestBody := RequisicaoCriarCliente{
 		Email:           "joao.silva@example.com",
 		TipoSolicitacao: "abertura_conta",
 		ValorPatrimonio: 150000.00,
@@ -103,7 +103,7 @@ func TestCriarClienteHandler_CampoObrigatorioEmail(t *testing.T) {
 	mockService := &MockClienteService{}
 	controller := NovoClienteController(mockService)
 
-	requestBody := CriarClienteRequest{
+	requestBody := RequisicaoCriarCliente{
 		Nome:            "João Silva",
 		TipoSolicitacao: "abertura_conta",
 		ValorPatrimonio: 150000.00,
@@ -132,7 +132,7 @@ func TestCriarClienteHandler_CampoObrigatorioTipoSolicitacao(t *testing.T) {
 	mockService := &MockClienteService{}
 	controller := NovoClienteController(mockService)
 
-	requestBody := CriarClienteRequest{
+	requestBody := RequisicaoCriarCliente{
 		Nome:            "João Silva",
 		Email:           "joao.silva@example.com",
 		ValorPatrimonio: 150000.00,
@@ -161,7 +161,7 @@ func TestCriarClienteHandler_CampoObrigatorioValorPatrimonio(t *testing.T) {
 	mockService := &MockClienteService{}
 	controller := NovoClienteController(mockService)
 
-	requestBody := CriarClienteRequest{
+	requestBody := RequisicaoCriarCliente{
 		Nome:            "João Silva",
 		Email:           "joao.silva@example.com",
 		TipoSolicitacao: "abertura_conta",
@@ -190,7 +190,7 @@ func TestCriarClienteHandler_EmailInvalido(t *testing.T) {
 	mockService := &MockClienteService{}
 	controller := NovoClienteController(mockService)
 
-	requestBody := CriarClienteRequest{
+	requestBody := RequisicaoCriarCliente{
 		Nome:            "João Silva",
 		Email:           "email-invalido",
 		TipoSolicitacao: "abertura_conta",
@@ -220,7 +220,7 @@ func TestCriarClienteHandler_PatrimonioNegativo(t *testing.T) {
 	mockService := &MockClienteService{}
 	controller := NovoClienteController(mockService)
 
-	requestBody := CriarClienteRequest{
+	requestBody := RequisicaoCriarCliente{
 		Nome:            "João Silva",
 		Email:           "joao.silva@example.com",
 		TipoSolicitacao: "abertura_conta",
@@ -250,7 +250,7 @@ func TestCriarClienteHandler_PatrimonioZero(t *testing.T) {
 	mockService := &MockClienteService{}
 	controller := NovoClienteController(mockService)
 
-	requestBody := CriarClienteRequest{
+	requestBody := RequisicaoCriarCliente{
 		Nome:            "João Silva",
 		Email:           "joao.silva@example.com",
 		TipoSolicitacao: "abertura_conta",
@@ -280,7 +280,7 @@ func TestCriarClienteHandler_NomeVazio(t *testing.T) {
 	mockService := &MockClienteService{}
 	controller := NovoClienteController(mockService)
 
-	requestBody := CriarClienteRequest{
+	requestBody := RequisicaoCriarCliente{
 		Nome:            "",
 		Email:           "joao.silva@example.com",
 		TipoSolicitacao: "abertura_conta",
@@ -312,7 +312,7 @@ func TestCriarClienteHandler_ErroBancoDados(t *testing.T) {
 	}
 	controller := NovoClienteController(mockService)
 
-	requestBody := CriarClienteRequest{
+	requestBody := RequisicaoCriarCliente{
 		Nome:            "João Silva",
 		Email:           "joao.silva@example.com",
 		TipoSolicitacao: "abertura_conta",

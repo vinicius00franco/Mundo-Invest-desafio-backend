@@ -17,20 +17,20 @@ import (
 
 // MockWebhookService é um mock do WebhookService para testes
 type MockWebhookService struct {
-	processarWebhookFunc func(ctx context.Context, request WebhookRequest) error
+	processarWebhookFunc func(ctx context.Context, requisicao RequisicaoWebhook) error
 	erro                 error
 	clienteExistente     bool
 }
 
-func (m *MockWebhookService) ProcessarWebhook(ctx context.Context, request WebhookRequest) error {
+func (m *MockWebhookService) ProcessarWebhook(ctx context.Context, requisicao RequisicaoWebhook) error {
 	if m.processarWebhookFunc != nil {
-		return m.processarWebhookFunc(ctx, request)
+		return m.processarWebhookFunc(ctx, requisicao)
 	}
 	if m.erro != nil {
 		return m.erro
 	}
 	if !m.clienteExistente {
-		return errors.NewNotFoundError("cliente", request.ClienteEmail)
+		return errors.NewNotFoundError("cliente", requisicao.EmailCliente)
 	}
 	return nil
 }
@@ -42,10 +42,10 @@ func TestProcessarWebhookHandler_PrioridadeAlta(t *testing.T) {
 	}
 	controller := NovoEventoController(mockService)
 
-	requestBody := WebhookRequest{
+	requestBody := RequisicaoWebhook{
 		IdentificadorEvento: "evt_prioridade_alta",
 		IdentificadorCard:   "card_123",
-		ClienteEmail:        "cliente.alto@example.com",
+		EmailCliente:        "cliente.alto@example.com",
 		DataEvento:          "2026-05-27T10:00:00Z",
 	}
 
@@ -79,10 +79,10 @@ func TestProcessarWebhookHandler_PrioridadeNormal(t *testing.T) {
 	}
 	controller := NovoEventoController(mockService)
 
-	requestBody := WebhookRequest{
+	requestBody := RequisicaoWebhook{
 		IdentificadorEvento: "evt_prioridade_normal",
 		IdentificadorCard:   "card_456",
-		ClienteEmail:        "cliente.normal@example.com",
+		EmailCliente:        "cliente.normal@example.com",
 		DataEvento:          "2026-05-27T10:00:00Z",
 	}
 
@@ -116,10 +116,10 @@ func TestProcessarWebhookHandler_Idempotencia(t *testing.T) {
 	}
 	controller := NovoEventoController(mockService)
 
-	requestBody := WebhookRequest{
+	requestBody := RequisicaoWebhook{
 		IdentificadorEvento: "evt_idempotente",
 		IdentificadorCard:   "card_789",
-		ClienteEmail:        "cliente.teste@example.com",
+		EmailCliente:        "cliente.teste@example.com",
 		DataEvento:          "2026-05-27T10:00:00Z",
 	}
 
@@ -155,16 +155,16 @@ func TestProcessarWebhookHandler_Idempotencia(t *testing.T) {
 func TestProcessarWebhookHandler_ClienteNaoEncontrado(t *testing.T) {
 	// Arrange
 	mockService := &MockWebhookService{
-		processarWebhookFunc: func(ctx context.Context, request WebhookRequest) error {
-			return errors.NewNotFoundError("cliente", request.ClienteEmail)
+		processarWebhookFunc: func(ctx context.Context, requisicao RequisicaoWebhook) error {
+			return errors.NewNotFoundError("cliente", requisicao.EmailCliente)
 		},
 	}
 	controller := NovoEventoController(mockService)
 
-	requestBody := WebhookRequest{
+	requestBody := RequisicaoWebhook{
 		IdentificadorEvento: "evt_inexistente",
 		IdentificadorCard:   "card_999",
-		ClienteEmail:        "nao.existe@example.com",
+		EmailCliente:        "nao.existe@example.com",
 		DataEvento:          "2026-05-27T10:00:00Z",
 	}
 
@@ -191,9 +191,9 @@ func TestProcessarWebhookHandler_CampoObrigatorioEventoId(t *testing.T) {
 	mockService := &MockWebhookService{}
 	controller := NovoEventoController(mockService)
 
-	requestBody := WebhookRequest{
+	requestBody := RequisicaoWebhook{
 		IdentificadorCard: "card_123",
-		ClienteEmail:      "cliente@example.com",
+		EmailCliente:      "cliente@example.com",
 		DataEvento:        "2026-05-27T10:00:00Z",
 	}
 
@@ -210,8 +210,8 @@ func TestProcessarWebhookHandler_CampoObrigatorioEventoId(t *testing.T) {
 		t.Errorf("Status code esperado %d, obtido %d", http.StatusBadRequest, w.Code)
 	}
 
-	if !containsString(w.Body.String(), "identificador_evento") {
-		t.Errorf("Erro esperado contendo 'identificador_evento', obtido: %s", w.Body.String())
+	if !containsString(w.Body.String(), "identificadorEvento") {
+		t.Errorf("Erro esperado contendo 'identificadorEvento', obtido: %s", w.Body.String())
 	}
 }
 
@@ -220,9 +220,9 @@ func TestProcessarWebhookHandler_CampoObrigatorioCardId(t *testing.T) {
 	mockService := &MockWebhookService{}
 	controller := NovoEventoController(mockService)
 
-	requestBody := WebhookRequest{
+	requestBody := RequisicaoWebhook{
 		IdentificadorEvento: "evt_123",
-		ClienteEmail:        "cliente@example.com",
+		EmailCliente:        "cliente@example.com",
 		DataEvento:          "2026-05-27T10:00:00Z",
 	}
 
@@ -239,8 +239,8 @@ func TestProcessarWebhookHandler_CampoObrigatorioCardId(t *testing.T) {
 		t.Errorf("Status code esperado %d, obtido %d", http.StatusBadRequest, w.Code)
 	}
 
-	if !containsString(w.Body.String(), "identificador_card") {
-		t.Errorf("Erro esperado contendo 'identificador_card', obtido: %s", w.Body.String())
+	if !containsString(w.Body.String(), "identificadorCard") {
+		t.Errorf("Erro esperado contendo 'identificadorCard', obtido: %s", w.Body.String())
 	}
 }
 
@@ -249,7 +249,7 @@ func TestProcessarWebhookHandler_CampoObrigatorioClienteEmail(t *testing.T) {
 	mockService := &MockWebhookService{}
 	controller := NovoEventoController(mockService)
 
-	requestBody := WebhookRequest{
+	requestBody := RequisicaoWebhook{
 		IdentificadorEvento: "evt_123",
 		IdentificadorCard:   "card_123",
 		DataEvento:          "2026-05-27T10:00:00Z",
@@ -268,8 +268,8 @@ func TestProcessarWebhookHandler_CampoObrigatorioClienteEmail(t *testing.T) {
 		t.Errorf("Status code esperado %d, obtido %d", http.StatusBadRequest, w.Code)
 	}
 
-	if !containsString(w.Body.String(), "cliente_email") {
-		t.Errorf("Erro esperado contendo 'cliente_email', obtido: %s", w.Body.String())
+	if !containsString(w.Body.String(), "emailCliente") {
+		t.Errorf("Erro esperado contendo 'emailCliente', obtido: %s", w.Body.String())
 	}
 }
 
@@ -278,10 +278,10 @@ func TestProcessarWebhookHandler_CampoObrigatorioTimestamp(t *testing.T) {
 	mockService := &MockWebhookService{}
 	controller := NovoEventoController(mockService)
 
-	requestBody := WebhookRequest{
+	requestBody := RequisicaoWebhook{
 		IdentificadorEvento: "evt_123",
 		IdentificadorCard:   "card_123",
-		ClienteEmail:        "cliente@example.com",
+		EmailCliente:        "cliente@example.com",
 	}
 
 	bodyBytes, _ := json.Marshal(requestBody)
@@ -297,8 +297,8 @@ func TestProcessarWebhookHandler_CampoObrigatorioTimestamp(t *testing.T) {
 		t.Errorf("Status code esperado %d, obtido %d", http.StatusBadRequest, w.Code)
 	}
 
-	if !containsString(w.Body.String(), "data_evento") {
-		t.Errorf("Erro esperado contendo 'data_evento', obtido: %s", w.Body.String())
+	if !containsString(w.Body.String(), "dataEvento") {
+		t.Errorf("Erro esperado contendo 'dataEvento', obtido: %s", w.Body.String())
 	}
 }
 
@@ -307,10 +307,10 @@ func TestProcessarWebhookHandler_EventIdVazio(t *testing.T) {
 	mockService := &MockWebhookService{}
 	controller := NovoEventoController(mockService)
 
-	requestBody := WebhookRequest{
+	requestBody := RequisicaoWebhook{
 		IdentificadorEvento: "",
 		IdentificadorCard:   "card_123",
-		ClienteEmail:        "cliente@example.com",
+		EmailCliente:        "cliente@example.com",
 		DataEvento:          "2026-05-27T10:00:00Z",
 	}
 
@@ -327,8 +327,8 @@ func TestProcessarWebhookHandler_EventIdVazio(t *testing.T) {
 		t.Errorf("Status code esperado %d, obtido %d", http.StatusBadRequest, w.Code)
 	}
 
-	if !containsString(w.Body.String(), "identificador_evento") {
-		t.Errorf("Erro esperado contendo 'identificador_evento', obtido: %s", w.Body.String())
+	if !containsString(w.Body.String(), "identificadorEvento") {
+		t.Errorf("Erro esperado contendo 'identificadorEvento', obtido: %s", w.Body.String())
 	}
 }
 
@@ -337,10 +337,10 @@ func TestProcessarWebhookHandler_CardIdVazio(t *testing.T) {
 	mockService := &MockWebhookService{}
 	controller := NovoEventoController(mockService)
 
-	requestBody := WebhookRequest{
+	requestBody := RequisicaoWebhook{
 		IdentificadorEvento: "evt_123",
 		IdentificadorCard:   "",
-		ClienteEmail:        "cliente@example.com",
+		EmailCliente:        "cliente@example.com",
 		DataEvento:          "2026-05-27T10:00:00Z",
 	}
 
@@ -357,8 +357,8 @@ func TestProcessarWebhookHandler_CardIdVazio(t *testing.T) {
 		t.Errorf("Status code esperado %d, obtido %d", http.StatusBadRequest, w.Code)
 	}
 
-	if !containsString(w.Body.String(), "identificador_card") {
-		t.Errorf("Erro esperado contendo 'identificador_card', obtido: %s", w.Body.String())
+	if !containsString(w.Body.String(), "identificadorCard") {
+		t.Errorf("Erro esperado contendo 'identificadorCard', obtido: %s", w.Body.String())
 	}
 }
 
@@ -367,10 +367,10 @@ func TestProcessarWebhookHandler_ClienteEmailVazio(t *testing.T) {
 	mockService := &MockWebhookService{}
 	controller := NovoEventoController(mockService)
 
-	requestBody := WebhookRequest{
+	requestBody := RequisicaoWebhook{
 		IdentificadorEvento: "evt_123",
 		IdentificadorCard:   "card_123",
-		ClienteEmail:        "",
+		EmailCliente:        "",
 		DataEvento:          "2026-05-27T10:00:00Z",
 	}
 
@@ -387,8 +387,8 @@ func TestProcessarWebhookHandler_ClienteEmailVazio(t *testing.T) {
 		t.Errorf("Status code esperado %d, obtido %d", http.StatusBadRequest, w.Code)
 	}
 
-	if !containsString(w.Body.String(), "cliente_email") {
-		t.Errorf("Erro esperado contendo 'cliente_email', obtido: %s", w.Body.String())
+	if !containsString(w.Body.String(), "emailCliente") {
+		t.Errorf("Erro esperado contendo 'emailCliente', obtido: %s", w.Body.String())
 	}
 }
 
@@ -397,10 +397,10 @@ func TestProcessarWebhookHandler_EmailInvalido(t *testing.T) {
 	mockService := &MockWebhookService{}
 	controller := NovoEventoController(mockService)
 
-	requestBody := WebhookRequest{
+	requestBody := RequisicaoWebhook{
 		IdentificadorEvento: "evt_123",
 		IdentificadorCard:   "card_123",
-		ClienteEmail:        "email-invalido",
+		EmailCliente:        "email-invalido",
 		DataEvento:          "2026-05-27T10:00:00Z",
 	}
 
@@ -427,10 +427,10 @@ func TestProcessarWebhookHandler_TimestampInvalido(t *testing.T) {
 	mockService := &MockWebhookService{}
 	controller := NovoEventoController(mockService)
 
-	requestBody := WebhookRequest{
+	requestBody := RequisicaoWebhook{
 		IdentificadorEvento: "evt_123",
 		IdentificadorCard:   "card_123",
-		ClienteEmail:        "cliente@example.com",
+		EmailCliente:        "cliente@example.com",
 		DataEvento:          "timestamp-invalido",
 	}
 
@@ -447,8 +447,8 @@ func TestProcessarWebhookHandler_TimestampInvalido(t *testing.T) {
 		t.Errorf("Status code esperado %d, obtido %d", http.StatusBadRequest, w.Code)
 	}
 
-	if !containsString(w.Body.String(), "data_evento") {
-		t.Errorf("Erro esperado contendo 'data_evento', obtido: %s", w.Body.String())
+	if !containsString(w.Body.String(), "dataEvento") {
+		t.Errorf("Erro esperado contendo 'dataEvento', obtido: %s", w.Body.String())
 	}
 }
 
@@ -459,10 +459,10 @@ func TestProcessarWebhookHandler_ErroBancoDados(t *testing.T) {
 	}
 	controller := NovoEventoController(mockService)
 
-	requestBody := WebhookRequest{
+	requestBody := RequisicaoWebhook{
 		IdentificadorEvento: "evt_123",
 		IdentificadorCard:   "card_123",
-		ClienteEmail:        "cliente@example.com",
+		EmailCliente:        "cliente@example.com",
 		DataEvento:          "2026-05-27T10:00:00Z",
 	}
 
@@ -523,10 +523,10 @@ func TestProcessarWebhookHandler_PrioridadeNoLimite(t *testing.T) {
 	}
 	controller := NovoEventoController(mockService)
 
-	requestBody := WebhookRequest{
+	requestBody := RequisicaoWebhook{
 		IdentificadorEvento: "evt_limite",
 		IdentificadorCard:   "card_limite",
-		ClienteEmail:        "cliente.limite@example.com",
+		EmailCliente:        "cliente.limite@example.com",
 		DataEvento:          "2026-05-27T10:00:00Z",
 	}
 
@@ -585,7 +585,7 @@ func TestProcessarWebhookHandler_IntegracaoBancoDados(t *testing.T) {
 // Teste unitário do PrioridadeCalculator
 func TestPrioridadeCalculator_CalcularNivelPrioridade(t *testing.T) {
 	cfg := config.Load()
-	calculator := dominio.NovoPrioridadeCalculator(cfg)
+	calculator := dominio.NovaCalculadoraPrioridade(cfg)
 
 	tests := []struct {
 		name       string
@@ -610,37 +610,37 @@ func TestPrioridadeCalculator_CalcularNivelPrioridade(t *testing.T) {
 }
 
 // Teste unitário do validador de webhook
-func TestValidarWebhookRequest(t *testing.T) {
+func TestValidarRequisicaoWebhook(t *testing.T) {
 	tests := []struct {
 		name    string
-		request WebhookRequest
+		request RequisicaoWebhook
 		erro    bool
 	}{
-		{"Payload válido", WebhookRequest{
+		{"Payload válido", RequisicaoWebhook{
 			IdentificadorEvento: "evt_123",
 			IdentificadorCard:   "card_123",
-			ClienteEmail:        "cliente@example.com",
+			EmailCliente:        "cliente@example.com",
 			DataEvento:          time.Now().Format(time.RFC3339),
 		}, false},
-		{"Evento ID vazio", WebhookRequest{
+		{"Evento ID vazio", RequisicaoWebhook{
 			IdentificadorEvento: "",
 			IdentificadorCard:   "card_123",
-			ClienteEmail:        "cliente@example.com",
+			EmailCliente:        "cliente@example.com",
 			DataEvento:          time.Now().Format(time.RFC3339),
 		}, true},
-		{"Email inválido", WebhookRequest{
+		{"Email inválido", RequisicaoWebhook{
 			IdentificadorEvento: "evt_123",
 			IdentificadorCard:   "card_123",
-			ClienteEmail:        "email-invalido",
+			EmailCliente:        "email-invalido",
 			DataEvento:          time.Now().Format(time.RFC3339),
 		}, true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := ValidarWebhookRequest(tt.request)
+			err := ValidarRequisicaoWebhook(tt.request)
 			if (err != nil) != tt.erro {
-				t.Errorf("ValidarWebhookRequest() erro = %v, esperado erro = %v", err, tt.erro)
+				t.Errorf("ValidarRequisicaoWebhook() erro = %v, esperado erro = %v", err, tt.erro)
 			}
 		})
 	}

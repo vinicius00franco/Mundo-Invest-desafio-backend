@@ -7,8 +7,8 @@ import (
 	"github.com/MundoInvest/backend/internal/shared/config"
 )
 
-// CriarClienteRequest representa o payload para criação de cliente
-type CriarClienteRequest struct {
+// RequisicaoCriarCliente representa o payload para criação de cliente
+type RequisicaoCriarCliente struct {
 	Nome            string  `json:"nome"`
 	Email           string  `json:"email"`
 	ValorPatrimonio float64 `json:"valorPatrimonio"`
@@ -16,15 +16,15 @@ type CriarClienteRequest struct {
 }
 
 // ValidarCriarClienteRequest valida o payload de criação de cliente usando Strategy Pattern
-func ValidarCriarClienteRequest(request CriarClienteRequest) error {
+func ValidarRequisicaoCriarCliente(requisicao RequisicaoCriarCliente) error {
 	strategy := NewClienteValidationStrategy()
-	return strategy.Validate(request)
+	return strategy.Validate(requisicao)
 }
 
 // ValidarCriarClienteRequestComConfig valida o payload usando configuração customizada
-func ValidarCriarClienteRequestComConfig(request CriarClienteRequest, cfg *config.Config) error {
+func ValidarRequisicaoCriarClienteComConfig(requisicao RequisicaoCriarCliente, cfg *config.Config) error {
 	strategy := NewClienteValidationStrategyComConfig(cfg)
-	return strategy.Validate(request)
+	return strategy.Validate(requisicao)
 }
 
 // ErroValidacao representa um erro de validação com detalhes
@@ -47,29 +47,29 @@ func (e *ErroValidacao) Error() string {
 }
 
 // ValidarCriarClienteRequestDetalhado valida o payload e retorna erros detalhados
-func ValidarCriarClienteRequestDetalhado(request CriarClienteRequest) []*ErroValidacao {
+func ValidarRequisicaoCriarClienteDetalhado(requisicao RequisicaoCriarCliente) []*ErroValidacao {
 	var erros []*ErroValidacao
 
-	if strings.TrimSpace(request.Nome) == "" {
+	if strings.TrimSpace(requisicao.Nome) == "" {
 		erros = append(erros, NewErroValidacao("nome", "nome é obrigatório"))
-	} else if len(strings.TrimSpace(request.Nome)) < 3 {
+	} else if len(strings.TrimSpace(requisicao.Nome)) < 3 {
 		erros = append(erros, NewErroValidacao("nome", "nome deve ter pelo menos 3 caracteres"))
 	}
 
-	if strings.TrimSpace(request.Email) == "" {
+	if strings.TrimSpace(requisicao.Email) == "" {
 		erros = append(erros, NewErroValidacao("email", "email é obrigatório"))
 	} else {
 		strategy := NewClienteValidationStrategy()
-		if !strategy.isValidEmail(request.Email) {
+		if !strategy.isValidEmail(requisicao.Email) {
 			erros = append(erros, NewErroValidacao("email", "email inválido"))
 		}
 	}
 
-	if strings.TrimSpace(request.TipoSolicitacao) == "" {
+	if strings.TrimSpace(requisicao.TipoSolicitacao) == "" {
 		erros = append(erros, NewErroValidacao("tipoSolicitacao", "tipoSolicitacao é obrigatório"))
 	}
 
-	if request.ValorPatrimonio <= 0 {
+	if requisicao.ValorPatrimonio <= 0 {
 		erros = append(erros, NewErroValidacao("valorPatrimonio", "valorPatrimonio deve ser positivo"))
 	}
 

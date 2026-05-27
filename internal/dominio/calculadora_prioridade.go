@@ -6,19 +6,19 @@ import (
 	"github.com/MundoInvest/backend/internal/shared/config"
 )
 
-// PrioridadeCalculator define a interface para cálculo de nível de prioridade
-type PrioridadeCalculator interface {
+// CalculadoraPrioridade define a interface para cálculo de nível de prioridade
+type CalculadoraPrioridade interface {
 	CalcularNivelPrioridade(valorPatrimonio float64) string
 }
 
-// prioridadeCalculator implementa a interface PrioridadeCalculator
-type prioridadeCalculator struct {
+// calculadoraPrioridade implementa a interface CalculadoraPrioridade
+type calculadoraPrioridade struct {
 	config *config.Config
 }
 
-// NovoPrioridadeCalculator cria uma nova instância de PrioridadeCalculator
-func NovoPrioridadeCalculator(cfg *config.Config) PrioridadeCalculator {
-	return &prioridadeCalculator{
+// NovaCalculadoraPrioridade cria uma nova instância de CalculadoraPrioridade
+func NovaCalculadoraPrioridade(cfg *config.Config) CalculadoraPrioridade {
+	return &calculadoraPrioridade{
 		config: cfg,
 	}
 }
@@ -27,7 +27,7 @@ func NovoPrioridadeCalculator(cfg *config.Config) PrioridadeCalculator {
 // Regras de negócio:
 // - valorPatrimonio >= limite configurado → nivelPrioridadeAlta
 // - valorPatrimonio < limite configurado → nivelPrioridadeNormal
-func (p *prioridadeCalculator) CalcularNivelPrioridade(valorPatrimonio float64) string {
+func (p *calculadoraPrioridade) CalcularNivelPrioridade(valorPatrimonio float64) string {
 	if valorPatrimonio >= p.config.Business.LimitePrioridadeAlta {
 		return PrioridadeAlta
 	}
@@ -36,7 +36,7 @@ func (p *prioridadeCalculator) CalcularNivelPrioridade(valorPatrimonio float64) 
 }
 
 // CalcularNivelPrioridadeComDetalhes calcula o nível de prioridade e retorna detalhes
-func (p *prioridadeCalculator) CalcularNivelPrioridadeComDetalhes(valorPatrimonio float64) (string, string) {
+func (p *calculadoraPrioridade) CalcularNivelPrioridadeComDetalhes(valorPatrimonio float64) (string, string) {
 	if valorPatrimonio >= p.config.Business.LimitePrioridadeAlta {
 		return PrioridadeAlta, fmt.Sprintf("Patrimônio %.2f atinge limite de prioridade alta (>= %.2f)", valorPatrimonio, p.config.Business.LimitePrioridadeAlta)
 	}
@@ -45,16 +45,16 @@ func (p *prioridadeCalculator) CalcularNivelPrioridadeComDetalhes(valorPatrimoni
 }
 
 // ValidarLimitePrioridadeAlta retorna o limite para prioridade alta
-func (p *prioridadeCalculator) ValidarLimitePrioridadeAlta() float64 {
+func (p *calculadoraPrioridade) ValidarLimitePrioridadeAlta() float64 {
 	return p.config.Business.LimitePrioridadeAlta
 }
 
 // EhPrioridadeAlta verifica se um determinado patrimônio é considerado prioridade alta
-func (p *prioridadeCalculator) EhPrioridadeAlta(valorPatrimonio float64) bool {
+func (p *calculadoraPrioridade) EhPrioridadeAlta(valorPatrimonio float64) bool {
 	return valorPatrimonio >= p.config.Business.LimitePrioridadeAlta
 }
 
 // EhPrioridadeNormal verifica se um determinado patrimônio é considerado prioridade normal
-func (p *prioridadeCalculator) EhPrioridadeNormal(valorPatrimonio float64) bool {
+func (p *calculadoraPrioridade) EhPrioridadeNormal(valorPatrimonio float64) bool {
 	return valorPatrimonio < p.config.Business.LimitePrioridadeAlta
 }

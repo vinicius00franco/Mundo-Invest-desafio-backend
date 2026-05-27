@@ -34,7 +34,7 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	eventoRepository := processamento_eventos.NovoEventoRepository(db, cfg)
 
 	// Criar serviços de domínio
-	prioridadeCalculator := dominio.NovoPrioridadeCalculator(cfg)
+	calculadoraPrioridade := dominio.NovaCalculadoraPrioridade(cfg)
 	pipefyClient := integracao_pipefy.NovoPipefyGraphQLClient(cfg.Pipefy.APIToken, cfg.Pipefy.APIURL)
 	eventDispatcher := dominio.NewInMemoryEventDispatcher()
 
@@ -49,7 +49,7 @@ func NewServer(cfg *config.Config) (*Server, error) {
 	webhookService := processamento_eventos.NovoWebhookService(
 		eventoRepository,
 		clienteRepository,
-		prioridadeCalculator,
+		calculadoraPrioridade,
 		pipefyClient,
 		cfg,
 	)

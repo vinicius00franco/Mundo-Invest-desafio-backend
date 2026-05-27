@@ -13,7 +13,7 @@ import (
 
 // ClienteService define a interface para operações de negócio de clientes
 type ClienteService interface {
-	CriarCliente(ctx context.Context, request CriarClienteRequest) (*Cliente, error)
+	CriarCliente(ctx context.Context, requisicao RequisicaoCriarCliente) (*Cliente, error)
 }
 
 // clienteService implementa a interface ClienteService
@@ -43,12 +43,12 @@ func NovoClienteService(
 }
 
 // CriarCliente cria um novo cliente seguindo as regras de negócio
-func (s *clienteService) CriarCliente(ctx context.Context, request CriarClienteRequest) (*Cliente, error) {
+func (s *clienteService) CriarCliente(ctx context.Context, requisicao RequisicaoCriarCliente) (*Cliente, error) {
 	ctx, cancel := context.WithTimeout(ctx, s.config.Timeouts.Default)
 	defer cancel()
 
 	// Validar o payload
-	if err := ValidarCriarClienteRequest(request); err != nil {
+	if err := ValidarRequisicaoCriarCliente(requisicao); err != nil {
 		return nil, errors.NewValidationError("", err.Error())
 	}
 
@@ -58,10 +58,10 @@ func (s *clienteService) CriarCliente(ctx context.Context, request CriarClienteR
 	// Criar entidade Cliente com status inicial
 	cliente := Cliente{
 		IdentificadorExterno: identificadorExterno,
-		Nome:                 request.Nome,
-		Email:                request.Email,
-		ValorPatrimonio:      request.ValorPatrimonio,
-		TipoSolicitacao:      request.TipoSolicitacao,
+		Nome:                 requisicao.Nome,
+		Email:                requisicao.Email,
+		ValorPatrimonio:      requisicao.ValorPatrimonio,
+		TipoSolicitacao:      requisicao.TipoSolicitacao,
 		Status:               dominio.StatusAguardandoAnalise,
 		NivelPrioridade:      "", // Será definido posteriormente pelo webhook
 		DataCriacao:          time.Now(),

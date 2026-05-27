@@ -38,7 +38,7 @@ func NewClienteValidationStrategyComConfig(cfg *config.Config) *ClienteValidatio
 
 // Validate valida um cliente
 func (s *ClienteValidationStrategy) Validate(obj interface{}) error {
-	request, ok := obj.(CriarClienteRequest)
+	requisicao, ok := obj.(RequisicaoCriarCliente)
 	if !ok {
 		return errors.NewValidationError("", "objeto inválido para validação de cliente")
 	}
@@ -46,36 +46,36 @@ func (s *ClienteValidationStrategy) Validate(obj interface{}) error {
 	var erros []string
 
 	// Validar nome
-	if strings.TrimSpace(request.Nome) == "" {
+	if strings.TrimSpace(requisicao.Nome) == "" {
 		erros = append(erros, "nome é obrigatório")
-	} else if len(strings.TrimSpace(request.Nome)) < 3 {
+	} else if len(strings.TrimSpace(requisicao.Nome)) < 3 {
 		erros = append(erros, "nome deve ter pelo menos 3 caracteres")
-	} else if len(strings.TrimSpace(request.Nome)) > s.config.Business.MaxNomeLength {
+	} else if len(strings.TrimSpace(requisicao.Nome)) > s.config.Business.MaxNomeLength {
 		erros = append(erros, fmt.Sprintf("nome deve ter no máximo %d caracteres", s.config.Business.MaxNomeLength))
 	}
 
 	// Validar email
-	if strings.TrimSpace(request.Email) == "" {
+	if strings.TrimSpace(requisicao.Email) == "" {
 		erros = append(erros, "email é obrigatório")
 	} else {
-		if !s.isValidEmail(request.Email) {
+		if !s.isValidEmail(requisicao.Email) {
 			erros = append(erros, "email inválido")
-		} else if len(strings.TrimSpace(request.Email)) > s.config.Business.MaxEmailLength {
+		} else if len(strings.TrimSpace(requisicao.Email)) > s.config.Business.MaxEmailLength {
 			erros = append(erros, fmt.Sprintf("email deve ter no máximo %d caracteres", s.config.Business.MaxEmailLength))
 		}
 	}
 
 	// Validar tipoSolicitacao
-	if strings.TrimSpace(request.TipoSolicitacao) == "" {
+	if strings.TrimSpace(requisicao.TipoSolicitacao) == "" {
 		erros = append(erros, "tipoSolicitacao é obrigatório")
-	} else if len(strings.TrimSpace(request.TipoSolicitacao)) > s.config.Business.MaxTipoSolicitacaoLength {
+	} else if len(strings.TrimSpace(requisicao.TipoSolicitacao)) > s.config.Business.MaxTipoSolicitacaoLength {
 		erros = append(erros, fmt.Sprintf("tipoSolicitacao deve ter no máximo %d caracteres", s.config.Business.MaxTipoSolicitacaoLength))
 	}
 
 	// Validar valorPatrimonio
-	if request.ValorPatrimonio < s.config.Business.MinValorPatrimonio {
+	if requisicao.ValorPatrimonio < s.config.Business.MinValorPatrimonio {
 		erros = append(erros, fmt.Sprintf("valorPatrimonio deve ser maior ou igual a %.2f", s.config.Business.MinValorPatrimonio))
-	} else if request.ValorPatrimonio > s.config.Business.MaxValorPatrimonio {
+	} else if requisicao.ValorPatrimonio > s.config.Business.MaxValorPatrimonio {
 		erros = append(erros, fmt.Sprintf("valorPatrimonio deve ser menor ou igual a %.2f", s.config.Business.MaxValorPatrimonio))
 	}
 

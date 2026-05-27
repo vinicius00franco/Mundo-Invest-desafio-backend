@@ -27,16 +27,16 @@ func (c *ClienteController) CriarClienteHandler(w http.ResponseWriter, r *http.R
 	}
 
 	// Parsear o JSON do corpo da requisição
-	var request CriarClienteRequest
+	var requisicao RequisicaoCriarCliente
 	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&request); err != nil {
+	if err := decoder.Decode(&requisicao); err != nil {
 		http.Error(w, fmt.Sprintf("Erro ao parsear JSON: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
 
 	// Validar o payload
-	if err := ValidarCriarClienteRequest(request); err != nil {
+	if err := ValidarRequisicaoCriarCliente(requisicao); err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(NewErrorResponse(err.Error()))
@@ -44,7 +44,7 @@ func (c *ClienteController) CriarClienteHandler(w http.ResponseWriter, r *http.R
 	}
 
 	// Chamar o serviço para criar o cliente
-	cliente, err := c.service.CriarCliente(r.Context(), request)
+	cliente, err := c.service.CriarCliente(r.Context(), requisicao)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)

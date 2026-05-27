@@ -9,41 +9,41 @@ import (
 )
 
 // WebhookRequest representa o payload para processamento de webhook
-type WebhookRequest struct {
+type RequisicaoWebhook struct {
 	IdentificadorEvento string `json:"identificadorEvento"`
 	IdentificadorCard   string `json:"identificadorCard"`
-	ClienteEmail        string `json:"clienteEmail"`
+	EmailCliente        string `json:"emailCliente"`
 	DataEvento          string `json:"dataEvento"`
 }
 
 // ValidarWebhookRequest valida o payload de webhook
-func ValidarWebhookRequest(request WebhookRequest) error {
+func ValidarRequisicaoWebhook(requisicao RequisicaoWebhook) error {
 	var erros []string
 
 	// Validar identificadorEvento
-	if strings.TrimSpace(request.IdentificadorEvento) == "" {
+	if strings.TrimSpace(requisicao.IdentificadorEvento) == "" {
 		erros = append(erros, "identificadorEvento é obrigatório")
 	}
 
 	// Validar identificadorCard
-	if strings.TrimSpace(request.IdentificadorCard) == "" {
+	if strings.TrimSpace(requisicao.IdentificadorCard) == "" {
 		erros = append(erros, "identificadorCard é obrigatório")
 	}
 
-	// Validar clienteEmail
-	if strings.TrimSpace(request.ClienteEmail) == "" {
-		erros = append(erros, "clienteEmail é obrigatório")
+	// Validar emailCliente
+	if strings.TrimSpace(requisicao.EmailCliente) == "" {
+		erros = append(erros, "emailCliente é obrigatório")
 	} else {
-		if !isValidEmail(request.ClienteEmail) {
-			erros = append(erros, "clienteEmail inválido")
+		if !isValidEmail(requisicao.EmailCliente) {
+			erros = append(erros, "emailCliente inválido")
 		}
 	}
 
 	// Validar dataEvento
-	if strings.TrimSpace(request.DataEvento) == "" {
+	if strings.TrimSpace(requisicao.DataEvento) == "" {
 		erros = append(erros, "dataEvento é obrigatório")
 	} else {
-		if !isValidTimestamp(request.DataEvento) {
+		if !isValidTimestamp(requisicao.DataEvento) {
 			erros = append(erros, "dataEvento inválido")
 		}
 	}
@@ -83,14 +83,14 @@ func ValidarIdentificadorCard(identificador string) error {
 	return nil
 }
 
-// ValidarClienteEmail valida o email do cliente
-func ValidarClienteEmail(email string) error {
+// ValidarEmailCliente valida o email do cliente
+func ValidarEmailCliente(email string) error {
 	if strings.TrimSpace(email) == "" {
-		return errors.New("clienteEmail é obrigatório")
+		return errors.New("emailCliente é obrigatório")
 	}
 
 	if !isValidEmail(email) {
-		return errors.New("clienteEmail inválido")
+		return errors.New("emailCliente inválido")
 	}
 
 	return nil
@@ -129,26 +129,26 @@ func (e *ErroValidacaoWebhook) Error() string {
 }
 
 // ValidarWebhookRequestDetalhado valida o payload e retorna erros detalhados
-func ValidarWebhookRequestDetalhado(request WebhookRequest) []*ErroValidacaoWebhook {
+func ValidarRequisicaoWebhookDetalhado(requisicao RequisicaoWebhook) []*ErroValidacaoWebhook {
 	var erros []*ErroValidacaoWebhook
 
-	if strings.TrimSpace(request.IdentificadorEvento) == "" {
+	if strings.TrimSpace(requisicao.IdentificadorEvento) == "" {
 		erros = append(erros, NewErroValidacaoWebhook("identificadorEvento", "identificadorEvento é obrigatório"))
 	}
 
-	if strings.TrimSpace(request.IdentificadorCard) == "" {
+	if strings.TrimSpace(requisicao.IdentificadorCard) == "" {
 		erros = append(erros, NewErroValidacaoWebhook("identificadorCard", "identificadorCard é obrigatório"))
 	}
 
-	if strings.TrimSpace(request.ClienteEmail) == "" {
-		erros = append(erros, NewErroValidacaoWebhook("clienteEmail", "clienteEmail é obrigatório"))
-	} else if !isValidEmail(request.ClienteEmail) {
-		erros = append(erros, NewErroValidacaoWebhook("clienteEmail", "clienteEmail inválido"))
+	if strings.TrimSpace(requisicao.EmailCliente) == "" {
+		erros = append(erros, NewErroValidacaoWebhook("emailCliente", "emailCliente é obrigatório"))
+	} else if !isValidEmail(requisicao.EmailCliente) {
+		erros = append(erros, NewErroValidacaoWebhook("emailCliente", "emailCliente inválido"))
 	}
 
-	if strings.TrimSpace(request.DataEvento) == "" {
+	if strings.TrimSpace(requisicao.DataEvento) == "" {
 		erros = append(erros, NewErroValidacaoWebhook("dataEvento", "dataEvento é obrigatório"))
-	} else if !isValidTimestamp(request.DataEvento) {
+	} else if !isValidTimestamp(requisicao.DataEvento) {
 		erros = append(erros, NewErroValidacaoWebhook("dataEvento", "dataEvento inválido"))
 	}
 

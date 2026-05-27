@@ -13,47 +13,47 @@ import (
 
 // WebhookService define a interface para operações de negócio de webhooks
 type WebhookService interface {
-	ProcessarWebhook(ctx context.Context, request WebhookRequest) error
+	ProcessarWebhook(ctx context.Context, requisicao RequisicaoWebhook) error
 }
 
 // webhookService implementa a interface WebhookService
 type webhookService struct {
-	eventoRepository     EventoRepository
-	clienteRepository    gestao_clientes.ClienteRepository
-	prioridadeCalculator dominio.PrioridadeCalculator
-	pipefyClient         integracao_pipefy.PipefyGraphQLClient
-	config               *config.Config
+	eventoRepository      EventoRepository
+	clienteRepository     gestao_clientes.ClienteRepository
+	calculadoraPrioridade dominio.CalculadoraPrioridade
+	pipefyClient          integracao_pipefy.PipefyGraphQLClient
+	config                *config.Config
 }
 
 // NovoWebhookService cria uma nova instância de WebhookService
 func NovoWebhookService(
 	eventoRepository EventoRepository,
 	clienteRepository gestao_clientes.ClienteRepository,
-	prioridadeCalculator dominio.PrioridadeCalculator,
+	calculadoraPrioridade dominio.CalculadoraPrioridade,
 	pipefyClient integracao_pipefy.PipefyGraphQLClient,
 	cfg *config.Config,
 ) WebhookService {
 	return &webhookService{
-		eventoRepository:     eventoRepository,
-		clienteRepository:    clienteRepository,
-		prioridadeCalculator: prioridadeCalculator,
-		pipefyClient:         pipefyClient,
-		config:               cfg,
+		eventoRepository:      eventoRepository,
+		clienteRepository:     clienteRepository,
+		calculadoraPrioridade: calculadoraPrioridade,
+		pipefyClient:          pipefyClient,
+		config:                cfg,
 	}
 }
 
 // ProcessarWebhook processa um webhook do Pipefy de forma idempotente
-func (s *webhookService) ProcessarWebhook(ctx context.Context, request WebhookRequest) error {
+func (s *webhookService) ProcessarWebhook(ctx context.Context, requisicao RequisicaoWebhook) error {
 	ctx, cancel := context.WithTimeout(ctx, s.config.Timeouts.Default)
 	defer cancel()
 
 	// Validar o payload
-	if err := ValidarWebhookRequest(request); err != nil {
+	if err := ValidarRequisicaoWebhook(requisicao); err != nil {
 		return errors.NewValidationError("", err.Error())
 	}
 
 	// Verificar idempotência: se o evento já foi processado, retornar sucesso
-	foiProcessado, err := s.eventoRepository.VerificarFoiProcessado(ctx, request.IdentificadorEvento)
+	foiProcessado, err := s.eventoRepository.VerificarFoiProcessado(ctx, requisicao.IdentificadorEvento)
 	if err != nil {
 		return errors.NewServiceError("WebhookService", "erro ao verificar idempotência", err)
 	}
@@ -64,13 +64,13 @@ func (s *webhookService) ProcessarWebhook(ctx context.Context, request WebhookRe
 	}
 
 	// Buscar cliente por email
-	cliente, err := s.clienteRepository.BuscarPorEmail(ctx, request.ClienteEmail)
+	cliente, err := s.clienteRepository.BuscarPorEmail(ctx, requisicao.EmailCliente)
 	if err != nil {
-		return errors.NewServiceError("WebhookService", "cliente não encontrado com email "+request.ClienteEmail, err)
+		return errors.NewServiceError("WebhookService", "cliente não encontrado com email "+requisicao.EmailCliente, err)
 	}
 
 	// Calcular nível de prioridade baseado no patrimônio
-	nivelPrioridade := s.prioridadeCalculator.CalcularNivelPrioridade(cliente.ValorPatrimonio)
+	nivelPrioridade := s.calculadoraPrioridade.CalcularNivelPrioridade(cliente.ValorPatrimonio)
 
 	// Atualizar cliente com novo status e prioridade
 	cliente.Status = dominio.StatusProcessado
@@ -90,7 +90,7 @@ func (s *webhookService) ProcessarWebhook(ctx context.Context, request WebhookRe
 	}
 	// NOTA: FieldIDs são identificadores de campos do Pipefy (snake_case) e devem ser configurados conforme o setup do pipe
 
-	mutation, err := s.pipefyClient.EstruturarMutationUpdateCard(request.IdentificadorCard, fieldsAttributes)
+	mutation, err := s.pipefyClient.EstruturarMutationUpdateCard(requisicao.IdentificadorCard, fieldsAttributes)
 	if err != nil {
 		return errors.NewIntegrationError("Pipefy", "erro ao estruturar mutation updateCard", err)
 	}
@@ -100,15 +100,15 @@ func (s *webhookService) ProcessarWebhook(ctx context.Context, request WebhookRe
 	_, _ = s.pipefyClient.ExecutarMutation(mutation)
 
 	// Salvar evento como processado
-	timestampEvento, err := time.Parse(time.RFC3339, request.DataEvento)
+	timestampEvento, err := time.Parse(time.RFC3339, requisicao.DataEvento)
 	if err != nil {
 		return errors.NewServiceError("WebhookService", "erro ao parsear data do evento", err)
 	}
 
 	evento := Evento{
-		IdentificadorEvento: request.IdentificadorEvento,
-		IdentificadorCard:   request.IdentificadorCard,
-		EmailCliente:        request.ClienteEmail,
+		IdentificadorEvento: requisicao.IdentificadorEvento,
+		IdentificadorCard:   requisicao.IdentificadorCard,
+		EmailCliente:        requisicao.EmailCliente,
 		TimestampEvento:     timestampEvento,
 		FoiProcessado:       true,
 		DataCriacao:         time.Now(),

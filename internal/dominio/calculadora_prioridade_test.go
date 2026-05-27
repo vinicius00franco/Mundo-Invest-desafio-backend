@@ -15,9 +15,9 @@ func setupTestConfig() *config.Config {
 	}
 }
 
-func TestPrioridadeCalculator_CalcularNivelPrioridade(t *testing.T) {
+func TestCalculadoraPrioridade_CalcularNivelPrioridade(t *testing.T) {
 	cfg := setupTestConfig()
-	calculator := NovoPrioridadeCalculator(cfg)
+	calculadora := NovaCalculadoraPrioridade(cfg)
 
 	tests := []struct {
 		name       string
@@ -35,7 +35,7 @@ func TestPrioridadeCalculator_CalcularNivelPrioridade(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			resultado := calculator.CalcularNivelPrioridade(tt.patrimonio)
+			resultado := calculadora.CalcularNivelPrioridade(tt.patrimonio)
 			if resultado != tt.esperado {
 				t.Errorf("CalcularNivelPrioridade(%.2f) = %s, esperado %s", tt.patrimonio, resultado, tt.esperado)
 			}
@@ -43,14 +43,14 @@ func TestPrioridadeCalculator_CalcularNivelPrioridade(t *testing.T) {
 	}
 }
 
-func TestPrioridadeCalculator_CalcularNivelPrioridadeComDetalhes(t *testing.T) {
+func TestCalculadoraPrioridade_CalcularNivelPrioridadeComDetalhes(t *testing.T) {
 	cfg := setupTestConfig()
-	calculator := NovoPrioridadeCalculator(cfg)
+	calculadora := NovaCalculadoraPrioridade(cfg)
 
 	// Type assert to concrete type to test implementation details
-	concreteCalc, ok := calculator.(*prioridadeCalculator)
+	concreteCalc, ok := calculadora.(*calculadoraPrioridade)
 	if !ok {
-		t.Fatal("Não foi possível fazer type assert para prioridadeCalculator")
+		t.Fatal("Não foi possível fazer type assert para calculadoraPrioridade")
 	}
 
 	resultado, detalhes := concreteCalc.CalcularNivelPrioridadeComDetalhes(250000.00)
@@ -62,9 +62,9 @@ func TestPrioridadeCalculator_CalcularNivelPrioridadeComDetalhes(t *testing.T) {
 	}
 }
 
-func TestPrioridadeCalculator_EhPrioridadeAlta(t *testing.T) {
+func TestCalculadoraPrioridade_EhPrioridadeAlta(t *testing.T) {
 	cfg := setupTestConfig()
-	calculator := NovoPrioridadeCalculator(cfg)
+	calculadora := NovaCalculadoraPrioridade(cfg)
 
 	tests := []struct {
 		patrimonio float64
@@ -79,9 +79,9 @@ func TestPrioridadeCalculator_EhPrioridadeAlta(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("Patrimônio %.2f", tt.patrimonio), func(t *testing.T) {
 			// Type assert to concrete type to test implementation details
-			concreteCalc, ok := calculator.(*prioridadeCalculator)
+			concreteCalc, ok := calculadora.(*calculadoraPrioridade)
 			if !ok {
-				t.Fatal("Não foi possível fazer type assert para prioridadeCalculator")
+				t.Fatal("Não foi possível fazer type assert para calculadoraPrioridade")
 			}
 			resultado := concreteCalc.EhPrioridadeAlta(tt.patrimonio)
 			if resultado != tt.esperado {
@@ -91,9 +91,9 @@ func TestPrioridadeCalculator_EhPrioridadeAlta(t *testing.T) {
 	}
 }
 
-func TestPrioridadeCalculator_EhPrioridadeNormal(t *testing.T) {
+func TestCalculadoraPrioridade_EhPrioridadeNormal(t *testing.T) {
 	cfg := setupTestConfig()
-	calculator := NovoPrioridadeCalculator(cfg)
+	calculadora := NovaCalculadoraPrioridade(cfg)
 
 	tests := []struct {
 		patrimonio float64
@@ -108,9 +108,9 @@ func TestPrioridadeCalculator_EhPrioridadeNormal(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(fmt.Sprintf("Patrimônio %.2f", tt.patrimonio), func(t *testing.T) {
 			// Type assert to concrete type to test implementation details
-			concreteCalc, ok := calculator.(*prioridadeCalculator)
+			concreteCalc, ok := calculadora.(*calculadoraPrioridade)
 			if !ok {
-				t.Fatal("Não foi possível fazer type assert para prioridadeCalculator")
+				t.Fatal("Não foi possível fazer type assert para calculadoraPrioridade")
 			}
 			resultado := concreteCalc.EhPrioridadeNormal(tt.patrimonio)
 			if resultado != tt.esperado {
@@ -120,14 +120,14 @@ func TestPrioridadeCalculator_EhPrioridadeNormal(t *testing.T) {
 	}
 }
 
-func TestPrioridadeCalculator_ValidarLimitePrioridadeAlta(t *testing.T) {
+func TestCalculadoraPrioridade_ValidarLimitePrioridadeAlta(t *testing.T) {
 	cfg := setupTestConfig()
-	calculator := NovoPrioridadeCalculator(cfg)
+	calculadora := NovaCalculadoraPrioridade(cfg)
 
 	// Type assert to concrete type to test implementation details
-	concreteCalc, ok := calculator.(*prioridadeCalculator)
+	concreteCalc, ok := calculadora.(*calculadoraPrioridade)
 	if !ok {
-		t.Fatal("Não foi possível fazer type assert para prioridadeCalculator")
+		t.Fatal("Não foi possível fazer type assert para calculadoraPrioridade")
 	}
 
 	limite := concreteCalc.ValidarLimitePrioridadeAlta()
@@ -136,21 +136,21 @@ func TestPrioridadeCalculator_ValidarLimitePrioridadeAlta(t *testing.T) {
 	}
 }
 
-func TestPrioridadeCalculator_ConfigCustomizado(t *testing.T) {
+func TestCalculadoraPrioridade_ConfigCustomizado(t *testing.T) {
 	customCfg := &config.Config{
 		Business: config.BusinessConfig{
 			LimitePrioridadeAlta: 150000.00,
 		},
 	}
-	calculator := NovoPrioridadeCalculator(customCfg)
+	calculadora := NovaCalculadoraPrioridade(customCfg)
 
 	// Testar com limite customizado
-	resultado := calculator.CalcularNivelPrioridade(140000.00)
+	resultado := calculadora.CalcularNivelPrioridade(140000.00)
 	if resultado != PrioridadeNormal {
 		t.Errorf("Com limite customizado de 150000, patrimonio 140000 deveria ser normal, obtido %s", resultado)
 	}
 
-	resultado = calculator.CalcularNivelPrioridade(160000.00)
+	resultado = calculadora.CalcularNivelPrioridade(160000.00)
 	if resultado != PrioridadeAlta {
 		t.Errorf("Com limite customizado de 150000, patrimonio 160000 deveria ser alta, obtido %s", resultado)
 	}

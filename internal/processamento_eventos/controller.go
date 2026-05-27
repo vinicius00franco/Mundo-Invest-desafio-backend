@@ -29,22 +29,22 @@ func (c *EventoController) ProcessarWebhookHandler(w http.ResponseWriter, r *htt
 	}
 
 	// Parsear o JSON do corpo da requisição
-	var request WebhookRequest
+	var requisicao RequisicaoWebhook
 	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&request); err != nil {
+	if err := decoder.Decode(&requisicao); err != nil {
 		http.Error(w, fmt.Sprintf("Erro ao parsear JSON: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
 
 	// Validar o payload
-	if err := ValidarWebhookRequest(request); err != nil {
+	if err := ValidarRequisicaoWebhook(requisicao); err != nil {
 		http.Error(w, fmt.Sprintf("Erro de validação: %s", err.Error()), http.StatusBadRequest)
 		return
 	}
 
 	// Chamar o serviço para processar o webhook
-	if err := c.service.ProcessarWebhook(r.Context(), request); err != nil {
+	if err := c.service.ProcessarWebhook(r.Context(), requisicao); err != nil {
 		// Verificar se é erro de cliente não encontrado
 		if _, ok := err.(*errors.NotFoundError); ok {
 			http.Error(w, "Cliente não encontrado", http.StatusNotFound)
@@ -59,10 +59,10 @@ func (c *EventoController) ProcessarWebhookHandler(w http.ResponseWriter, r *htt
 	w.WriteHeader(http.StatusOK)
 
 	response := map[string]interface{}{
-		"mensagem":             "Webhook processado com sucesso",
-		"identificador_evento": request.IdentificadorEvento,
-		"identificador_card":   request.IdentificadorCard,
-		"cliente_email":        request.ClienteEmail,
+		"mensagem":            "Webhook processado com sucesso",
+		"identificadorEvento": requisicao.IdentificadorEvento,
+		"identificadorCard":   requisicao.IdentificadorCard,
+		"emailCliente":        requisicao.EmailCliente,
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {

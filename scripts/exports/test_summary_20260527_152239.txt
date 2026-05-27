@@ -1,0 +1,15 @@
+========================================
+RESUMO DE TESTES DE INTEGRAÇÃO
+Data: qua 27 mai 2026 15:22:39 -03
+========================================
+
+✓ Testes de sucesso: PASSOU
+
+✓ Testes de falha: PASSOU
+
+✓ Testes de validação: PASSOU
+
+========================================
+FIM DOS TESTES
+Resumo salvo em: /home/vinicius/.windsurf/worktrees/MundoInvest/MundoInvest-dcd16b68/scripts/integration/../exports/test_summary_20260527_152239.txt
+========================================
