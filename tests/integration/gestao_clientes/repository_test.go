@@ -1,4 +1,4 @@
-package gestao_clientes
+package gestao_clientes_test
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/MundoInvest/backend/internal/gestao_clientes"
 	"github.com/MundoInvest/backend/internal/shared/config"
 	_ "github.com/lib/pq"
 )
@@ -13,7 +14,7 @@ import (
 // TestRepositoryIntegracao testa o repository com banco de dados real
 func TestRepositoryIntegracao(t *testing.T) {
 	// Este teste requer banco de dados real
-	// Executar com: go test ./internal/gestao_clientes/... -v -tags=integration
+	// Executar com: go test ./tests/integration/gestao_clientes/... -v -tags=integration
 
 	t.Skip("Teste de integração requer banco de dados real - executar com -tags=integration")
 }
@@ -28,10 +29,10 @@ func TestRepositoryIntegracao_Salvar(t *testing.T) {
 	defer db.Close()
 
 	cfg := config.Load()
-	repository := NovoClienteRepository(db, cfg)
+	repository := gestao_clientes.NovoClienteRepository(db, cfg)
 
 	// Criar cliente de teste
-	cliente := Cliente{
+	cliente := gestao_clientes.Cliente{
 		IdentificadorExterno: "card_test_123",
 		Nome:                 "Cliente Teste Integração",
 		Email:                "teste.integracao@example.com",
@@ -67,10 +68,10 @@ func TestRepositoryIntegracao_BuscarPorEmail(t *testing.T) {
 	defer db.Close()
 
 	cfg := config.Load()
-	repository := NovoClienteRepository(db, cfg)
+	repository := gestao_clientes.NovoClienteRepository(db, cfg)
 
 	// Criar cliente de teste
-	cliente := Cliente{
+	cliente := gestao_clientes.Cliente{
 		IdentificadorExterno: "card_test_456",
 		Nome:                 "Cliente Teste Busca",
 		Email:                "teste.busca@example.com",
@@ -110,10 +111,10 @@ func TestRepositoryIntegracao_Atualizar(t *testing.T) {
 	defer db.Close()
 
 	cfg := config.Load()
-	repository := NovoClienteRepository(db, cfg)
+	repository := gestao_clientes.NovoClienteRepository(db, cfg)
 
 	// Criar cliente de teste
-	cliente := Cliente{
+	cliente := gestao_clientes.Cliente{
 		IdentificadorExterno: "card_test_789",
 		Nome:                 "Cliente Teste Atualização",
 		Email:                "teste.atualizacao@example.com",

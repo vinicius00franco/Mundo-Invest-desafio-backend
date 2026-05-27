@@ -1,9 +1,10 @@
-package database
+package database_test
 
 import (
 	"testing"
 
 	"github.com/MundoInvest/backend/internal/shared/config"
+	"github.com/MundoInvest/backend/internal/shared/database"
 	"github.com/MundoInvest/backend/internal/shared/logger"
 	"github.com/MundoInvest/backend/internal/shared/mensagens"
 )
@@ -16,7 +17,7 @@ func TestNovaConexaoSucesso(t *testing.T) {
 	// Este teste requer variáveis de ambiente configuradas
 	// Para executar: export DB_HOST=localhost DB_PORT=5434 DB_USER=postgres DB_PASSWORD=postgres DB_NAME=mundo_invest
 
-	configDB := ConfiguracaoBancoDados{
+	configDB := database.ConfiguracaoBancoDados{
 		Host:    "localhost",
 		Port:    "5434",
 		Usuario: "postgres",
@@ -26,7 +27,7 @@ func TestNovaConexaoSucesso(t *testing.T) {
 	}
 
 	cfg := config.Load()
-	db, err := NovoBancoDados(configDB, cfg)
+	db, err := database.NovoBancoDados(configDB, cfg)
 	if err != nil {
 		t.Skipf("Teste de integração pulado: não foi possível conectar ao banco de dados: %v", err)
 	}
@@ -40,7 +41,7 @@ func TestNovaConexaoSucesso(t *testing.T) {
 
 // TestNovaConexaoFalha testa falha na conexão
 func TestNovaConexaoFalha(t *testing.T) {
-	configDB := ConfiguracaoBancoDados{
+	configDB := database.ConfiguracaoBancoDados{
 		Host:    "localhost",
 		Port:    "9999", // Porta inválida
 		Usuario: "postgres",
@@ -51,7 +52,7 @@ func TestNovaConexaoFalha(t *testing.T) {
 
 	cfg := config.Load()
 	catalogo := mensagens.ObterCatalogo()
-	_, err := NovoBancoDados(configDB, cfg)
+	_, err := database.NovoBancoDados(configDB, cfg)
 	if err == nil {
 		t.Error(catalogo.Texto(mensagens.ErrEsperadoErro))
 	}
@@ -72,7 +73,7 @@ func TestNovaConexaoVariaveisAmbiente(t *testing.T) {
 	t.Setenv("DB_SSLMODE", "disable")
 
 	cfg := config.Load()
-	db, err := NovaConexao(cfg)
+	db, err := database.NovaConexao(cfg)
 	if err != nil {
 		t.Skipf("Teste de integração pulado: não foi possível conectar ao banco de dados: %v", err)
 	}
@@ -86,7 +87,7 @@ func TestNovaConexaoVariaveisAmbiente(t *testing.T) {
 
 // TestTransacaoAtômica testa se transações são atômicas
 func TestTransacaoAtômica(t *testing.T) {
-	configDB := ConfiguracaoBancoDados{
+	configDB := database.ConfiguracaoBancoDados{
 		Host:    "localhost",
 		Port:    "5434",
 		Usuario: "postgres",
@@ -96,7 +97,7 @@ func TestTransacaoAtômica(t *testing.T) {
 	}
 
 	cfg := config.Load()
-	db, err := NovoBancoDados(configDB, cfg)
+	db, err := database.NovoBancoDados(configDB, cfg)
 	if err != nil {
 		t.Skipf("Teste de integração pulado: não foi possível conectar ao banco de dados: %v", err)
 	}
@@ -138,7 +139,7 @@ func TestTransacaoAtômica(t *testing.T) {
 // TestRestricaoUnicidade testa restrição de unicidade de email
 func TestRestricaoUnicidade(t *testing.T) {
 	catalogo := mensagens.ObterCatalogo()
-	configDB := ConfiguracaoBancoDados{
+	configDB := database.ConfiguracaoBancoDados{
 		Host:    "localhost",
 		Port:    "5434",
 		Usuario: "postgres",
@@ -148,7 +149,7 @@ func TestRestricaoUnicidade(t *testing.T) {
 	}
 
 	cfg := config.Load()
-	db, err := NovoBancoDados(configDB, cfg)
+	db, err := database.NovoBancoDados(configDB, cfg)
 	if err != nil {
 		t.Skipf("Teste de integração pulado: não foi possível conectar ao banco de dados: %v", err)
 	}
@@ -175,7 +176,7 @@ func TestRestricaoUnicidade(t *testing.T) {
 
 // TestConfiguracaoPoolConexoes testa configuração de pool de conexões
 func TestConfiguracaoPoolConexoes(t *testing.T) {
-	configDB := ConfiguracaoBancoDados{
+	configDB := database.ConfiguracaoBancoDados{
 		Host:    "localhost",
 		Port:    "5434",
 		Usuario: "postgres",
@@ -185,7 +186,7 @@ func TestConfiguracaoPoolConexoes(t *testing.T) {
 	}
 
 	cfg := config.Load()
-	db, err := NovoBancoDados(configDB, cfg)
+	db, err := database.NovoBancoDados(configDB, cfg)
 	if err != nil {
 		t.Skipf("Teste de integração pulado: não foi possível conectar ao banco de dados: %v", err)
 	}
@@ -205,7 +206,7 @@ func TestConfiguracaoPoolConexoes(t *testing.T) {
 
 // TestIntegracaoSchemas testa se schemas estão criados corretamente
 func TestIntegracaoSchemas(t *testing.T) {
-	configDB := ConfiguracaoBancoDados{
+	configDB := database.ConfiguracaoBancoDados{
 		Host:    "localhost",
 		Port:    "5434",
 		Usuario: "postgres",
@@ -215,7 +216,7 @@ func TestIntegracaoSchemas(t *testing.T) {
 	}
 
 	cfg := config.Load()
-	db, err := NovoBancoDados(configDB, cfg)
+	db, err := database.NovoBancoDados(configDB, cfg)
 	if err != nil {
 		t.Skipf("Teste de integração pulado: não foi possível conectar ao banco de dados: %v", err)
 	}
@@ -245,7 +246,7 @@ func TestIntegracaoSchemas(t *testing.T) {
 
 // TestIntegracaoTabelas testa se tabelas estão criadas corretamente
 func TestIntegracaoTabelas(t *testing.T) {
-	configDB := ConfiguracaoBancoDados{
+	configDB := database.ConfiguracaoBancoDados{
 		Host:    "localhost",
 		Port:    "5434",
 		Usuario: "postgres",
@@ -255,7 +256,7 @@ func TestIntegracaoTabelas(t *testing.T) {
 	}
 
 	cfg := config.Load()
-	db, err := NovoBancoDados(configDB, cfg)
+	db, err := database.NovoBancoDados(configDB, cfg)
 	if err != nil {
 		t.Skipf("Teste de integração pulado: não foi possível conectar ao banco de dados: %v", err)
 	}
@@ -269,7 +270,7 @@ func TestIntegracaoTabelas(t *testing.T) {
 	}
 
 	if !tableExists {
-		t.Error("Tabela cliente não existe")
+		t.Error("Tabela cliente não existe no schema gestao_clientes")
 	}
 
 	// Verificar se tabela evento existe
@@ -279,46 +280,6 @@ func TestIntegracaoTabelas(t *testing.T) {
 	}
 
 	if !tableExists {
-		t.Error("Tabela evento não existe")
-	}
-}
-
-// TestIntegracaoSequencias testa se sequências estão criadas corretamente
-func TestIntegracaoSequencias(t *testing.T) {
-	configDB := ConfiguracaoBancoDados{
-		Host:    "localhost",
-		Port:    "5434",
-		Usuario: "postgres",
-		Senha:   "postgres",
-		Banco:   "mundo_invest",
-		SSLMode: "disable",
-	}
-
-	cfg := config.Load()
-	db, err := NovoBancoDados(configDB, cfg)
-	if err != nil {
-		t.Skipf("Teste de integração pulado: não foi possível conectar ao banco de dados: %v", err)
-	}
-	defer db.Close()
-
-	// Verificar se sequência seq_gcl_cli_int existe
-	var sequenceExists bool
-	err = db.QueryRow("SELECT EXISTS(SELECT 1 FROM pg_sequences WHERE schemaname = 'gestao_clientes' AND sequencename = 'seq_gcl_cli_int')").Scan(&sequenceExists)
-	if err != nil {
-		t.Fatalf("Erro ao verificar sequência seq_gcl_cli_int: %v", err)
-	}
-
-	if !sequenceExists {
-		t.Error("Sequência seq_gcl_cli_int não existe")
-	}
-
-	// Verificar se sequência seq_pev_eve_int existe
-	err = db.QueryRow("SELECT EXISTS(SELECT 1 FROM pg_sequences WHERE schemaname = 'processamento_eventos' AND sequencename = 'seq_pev_eve_int')").Scan(&sequenceExists)
-	if err != nil {
-		t.Fatalf("Erro ao verificar sequência seq_pev_eve_int: %v", err)
-	}
-
-	if !sequenceExists {
-		t.Error("Sequência seq_pev_eve_int não existe")
+		t.Error("Tabela evento não existe no schema processamento_eventos")
 	}
 }

@@ -1,4 +1,4 @@
-package processamento_eventos
+package processamento_eventos_test
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/MundoInvest/backend/internal/processamento_eventos"
 	"github.com/MundoInvest/backend/internal/shared/config"
 	_ "github.com/lib/pq"
 )
@@ -14,7 +15,7 @@ import (
 // TestEventoRepositoryIntegracao testa o repository de eventos com banco real
 func TestEventoRepositoryIntegracao(t *testing.T) {
 	// Este teste requer banco de dados real
-	// Executar com: go test ./internal/processamento_eventos/... -v -tags=integration
+	// Executar com: go test ./tests/integration/processamento_eventos/... -v -tags=integration
 
 	t.Skip("Teste de integração requer banco de dados real - executar com -tags=integration")
 }
@@ -28,9 +29,9 @@ func TestEventoRepositoryIntegracao_Salvar(t *testing.T) {
 	defer db.Close()
 
 	cfg := config.Load()
-	repository := NovoEventoRepository(db, cfg)
+	repository := processamento_eventos.NovoEventoRepository(db, cfg)
 
-	evento := Evento{
+	evento := processamento_eventos.Evento{
 		IdentificadorEvento: "evt_test_123",
 		IdentificadorCard:   "card_test_123",
 		EmailCliente:        "teste.evento@example.com",
@@ -62,7 +63,7 @@ func TestEventoRepositoryIntegracao_VerificarFoiProcessado(t *testing.T) {
 	defer db.Close()
 
 	cfg := config.Load()
-	repository := NovoEventoRepository(db, cfg)
+	repository := processamento_eventos.NovoEventoRepository(db, cfg)
 
 	// Testar evento não existente
 	foiProcessado, err := repository.VerificarFoiProcessado(context.Background(), "evt_inexistente")
@@ -75,7 +76,7 @@ func TestEventoRepositoryIntegracao_VerificarFoiProcessado(t *testing.T) {
 	}
 
 	// Criar evento processado
-	evento := Evento{
+	evento := processamento_eventos.Evento{
 		IdentificadorEvento: "evt_test_456",
 		IdentificadorCard:   "card_test_456",
 		EmailCliente:        "teste.processado@example.com",
@@ -113,7 +114,7 @@ func TestEventoRepositoryIntegracao_BuscarPorIdentificadorCard(t *testing.T) {
 	defer db.Close()
 
 	cfg := config.Load()
-	repository := NovoEventoRepository(db, cfg)
+	repository := processamento_eventos.NovoEventoRepository(db, cfg)
 
 	// Limpar eventos de teste anteriores
 	cardID := "card_test_789"
@@ -121,7 +122,7 @@ func TestEventoRepositoryIntegracao_BuscarPorIdentificadorCard(t *testing.T) {
 
 	// Criar eventos de teste
 	for i := 0; i < 3; i++ {
-		evento := Evento{
+		evento := processamento_eventos.Evento{
 			IdentificadorEvento: fmt.Sprintf("evt_test_%d", i),
 			IdentificadorCard:   cardID,
 			EmailCliente:        "teste.card@example.com",
