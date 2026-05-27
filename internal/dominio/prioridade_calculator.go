@@ -23,37 +23,33 @@ func NovoPrioridadeCalculator() PrioridadeCalculator {
 // - valor_patrimonio < 200.000 → nivel_prioridade_normal
 // - valor_patrimonio == 200.000 → nivel_prioridade_alta
 func (p *prioridadeCalculator) CalcularNivelPrioridade(valorPatrimonio float64) string {
-	const LIMITE_PRIORIDADE_ALTA = 200000.00
-
-	if valorPatrimonio >= LIMITE_PRIORIDADE_ALTA {
-		return "prioridade_alta"
+	if valorPatrimonio >= LimitePrioridadeAlta {
+		return PrioridadeAlta
 	}
 
-	return "prioridade_normal"
+	return PrioridadeNormal
 }
 
 // CalcularNivelPrioridadeComDetalhes calcula o nível de prioridade e retorna detalhes
 func (p *prioridadeCalculator) CalcularNivelPrioridadeComDetalhes(valorPatrimonio float64) (string, string) {
-	const LIMITE_PRIORIDADE_ALTA = 200000.00
-
-	if valorPatrimonio >= LIMITE_PRIORIDADE_ALTA {
-		return "prioridade_alta", fmt.Sprintf("Patrimônio %.2f atinge limite de prioridade alta (>= %.2f)", valorPatrimonio, LIMITE_PRIORIDADE_ALTA)
+	if valorPatrimonio >= LimitePrioridadeAlta {
+		return PrioridadeAlta, fmt.Sprintf("Patrimônio %.2f atinge limite de prioridade alta (>= %.2f)", valorPatrimonio, LimitePrioridadeAlta)
 	}
 
-	return "prioridade_normal", fmt.Sprintf("Patrimônio %.2f abaixo do limite de prioridade alta (< %.2f)", valorPatrimonio, LIMITE_PRIORIDADE_ALTA)
+	return PrioridadeNormal, fmt.Sprintf("Patrimônio %.2f abaixo do limite de prioridade alta (< %.2f)", valorPatrimonio, LimitePrioridadeAlta)
 }
 
 // ValidarLimitePrioridadeAlta retorna o limite para prioridade alta
 func (p *prioridadeCalculator) ValidarLimitePrioridadeAlta() float64 {
-	return 200000.00
+	return LimitePrioridadeAlta
 }
 
 // EhPrioridadeAlta verifica se um determinado patrimônio é considerado prioridade alta
 func (p *prioridadeCalculator) EhPrioridadeAlta(valorPatrimonio float64) bool {
-	return valorPatrimonio >= 200000.00
+	return valorPatrimonio >= LimitePrioridadeAlta
 }
 
 // EhPrioridadeNormal verifica se um determinado patrimônio é considerado prioridade normal
 func (p *prioridadeCalculator) EhPrioridadeNormal(valorPatrimonio float64) bool {
-	return valorPatrimonio < 200000.00
+	return valorPatrimonio < LimitePrioridadeAlta
 }

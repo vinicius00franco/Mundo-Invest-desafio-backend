@@ -1,15 +1,17 @@
 package gestao_clientes
 
 import (
+	"context"
 	"fmt"
 	"time"
 
+	"github.com/MundoInvest/backend/internal/dominio"
 	"github.com/MundoInvest/backend/internal/integracao_pipefy"
 )
 
 // ClienteService define a interface para operações de negócio de clientes
 type ClienteService interface {
-	CriarCliente(request CriarClienteRequest) (*Cliente, error)
+	CriarCliente(ctx context.Context, request CriarClienteRequest) (*Cliente, error)
 }
 
 // clienteService implementa a interface ClienteService
@@ -45,7 +47,7 @@ func (s *clienteService) CriarCliente(request CriarClienteRequest) (*Cliente, er
 		Email:                request.Email,
 		ValorPatrimonio:      request.ValorPatrimonio,
 		TipoSolicitacao:      request.TipoSolicitacao,
-		Status:               "Aguardando Análise",
+		Status:               dominio.StatusAguardandoAnalise,
 		NivelPrioridade:      "", // Será definido posteriormente pelo webhook
 		DataCriacao:          time.Now(),
 		DataAtualizacao:      time.Now(),

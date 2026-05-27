@@ -1,6 +1,7 @@
 package processamento_eventos
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 
 // WebhookService define a interface para operações de negócio de webhooks
 type WebhookService interface {
-	ProcessarWebhook(request WebhookRequest) error
+	ProcessarWebhook(ctx context.Context, request WebhookRequest) error
 }
 
 // webhookService implementa a interface WebhookService
@@ -38,7 +39,7 @@ func NovoWebhookService(
 }
 
 // ProcessarWebhook processa um webhook do Pipefy de forma idempotente
-func (s *webhookService) ProcessarWebhook(request WebhookRequest) error {
+func (s *webhookService) ProcessarWebhook(ctx context.Context, request WebhookRequest) error {
 	// Validar o payload
 	if err := ValidarWebhookRequest(request); err != nil {
 		return fmt.Errorf("erro de validação: %w", err)
@@ -65,7 +66,7 @@ func (s *webhookService) ProcessarWebhook(request WebhookRequest) error {
 	nivelPrioridade := s.prioridadeCalculator.CalcularNivelPrioridade(cliente.ValorPatrimonio)
 
 	// Atualizar cliente com novo status e prioridade
-	cliente.Status = "Processado"
+	cliente.Status = dominio.StatusProcessado
 	cliente.NivelPrioridade = nivelPrioridade
 	cliente.DataAtualizacao = time.Now()
 

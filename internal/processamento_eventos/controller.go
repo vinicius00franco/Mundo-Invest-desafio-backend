@@ -48,7 +48,7 @@ func (c *WebhookController) ProcessarWebhookHandler(w http.ResponseWriter, r *ht
 	}
 
 	// Chamar o serviço para processar o webhook
-	if err := c.service.ProcessarWebhook(request); err != nil {
+	if err := c.service.ProcessarWebhook(r.Context(), request); err != nil {
 		// Verificar se é erro de cliente não encontrado
 		errMsg := fmt.Sprintf("%v", err)
 		if contains(errMsg, "cliente não encontrado") {

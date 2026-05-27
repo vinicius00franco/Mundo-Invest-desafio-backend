@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
+	"github.com/MundoInvest/backend/internal/dominio"
 	_ "github.com/lib/pq"
 )
 
@@ -40,8 +42,10 @@ func NovoBancoDados(config ConfiguracaoBancoDados) (*sql.DB, error) {
 		return nil, fmt.Errorf("erro ao testar conexão com banco de dados: %w", err)
 	}
 
-	banco.SetMaxOpenConns(25)
-	banco.SetMaxIdleConns(5)
+	banco.SetMaxOpenConns(dominio.MaxOpenConns)
+	banco.SetMaxIdleConns(dominio.MaxIdleConns)
+	banco.SetConnMaxLifetime(time.Duration(dominio.ConnMaxLifetime) * time.Second)
+	banco.SetConnMaxIdleTime(time.Duration(dominio.ConnMaxIdleTime) * time.Second)
 
 	log.Println("Conexão com banco de dados estabelecida com sucesso")
 	return banco, nil
