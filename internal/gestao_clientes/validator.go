@@ -98,14 +98,14 @@ func ValidarTipoSolicitacao(tipo string) error {
 
 // ErroValidacao representa um erro de validação com detalhes
 type ErroValidacao struct {
-	Campo   string
+	Campo    string
 	Mensagem string
 }
 
 // NewErroValidacao cria um novo erro de validação
 func NewErroValidacao(campo, mensagem string) *ErroValidacao {
 	return &ErroValidacao{
-		Campo:   campo,
+		Campo:    campo,
 		Mensagem: mensagem,
 	}
 }

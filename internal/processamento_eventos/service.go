@@ -19,7 +19,7 @@ type webhookService struct {
 	eventoRepository     EventoRepository
 	clienteRepository    gestao_clientes.ClienteRepository
 	prioridadeCalculator dominio.PrioridadeCalculator
-	pipefyClient        integracao_pipefy.PipefyGraphQLClient
+	pipefyClient         integracao_pipefy.PipefyGraphQLClient
 }
 
 // NovoWebhookService cria uma nova instância de WebhookService
@@ -33,7 +33,7 @@ func NovoWebhookService(
 		eventoRepository:     eventoRepository,
 		clienteRepository:    clienteRepository,
 		prioridadeCalculator: prioridadeCalculator,
-		pipefyClient:        pipefyClient,
+		pipefyClient:         pipefyClient,
 	}
 }
 
@@ -100,10 +100,10 @@ func (s *webhookService) ProcessarWebhook(request WebhookRequest) error {
 		IdentificadorEvento: request.IdentificadorEvento,
 		IdentificadorCard:   request.IdentificadorCard,
 		EmailCliente:        request.ClienteEmail,
-		TimestampEvento:      timestampEvento,
-		FoiProcessado:        true,
-		DataCriacao:          time.Now(),
-		DataAtualizacao:      time.Now(),
+		TimestampEvento:     timestampEvento,
+		FoiProcessado:       true,
+		DataCriacao:         time.Now(),
+		DataAtualizacao:     time.Now(),
 	}
 
 	if _, err := s.eventoRepository.Salvar(evento); err != nil {

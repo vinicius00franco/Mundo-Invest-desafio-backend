@@ -57,7 +57,7 @@ func (m *Mutations) UpdateCardMutation(cardID string, nivelPrioridade string) (s
 // CreateCardMutationComCamposPersonalizados cria a mutation para criar um card com campos personalizados
 func (m *Mutations) CreateCardMutationComCamposPersonalizados(pipeID string, campos map[string]string) (string, error) {
 	var fieldsAttributes []FieldAttribute
-	
+
 	for fieldID, valor := range campos {
 		fieldsAttributes = append(fieldsAttributes, FieldAttribute{
 			FieldID: fieldID,
@@ -71,7 +71,7 @@ func (m *Mutations) CreateCardMutationComCamposPersonalizados(pipeID string, cam
 // UpdateCardMutationComCamposPersonalizados cria a mutation para atualizar um card com campos personalizados
 func (m *Mutations) UpdateCardMutationComCamposPersonalizados(cardID string, campos map[string]string) (string, error) {
 	var fieldsAttributes []FieldAttribute
-	
+
 	for fieldID, valor := range campos {
 		fieldsAttributes = append(fieldsAttributes, FieldAttribute{
 			FieldID: fieldID,
