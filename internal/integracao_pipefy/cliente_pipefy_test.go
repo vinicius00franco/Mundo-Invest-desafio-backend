@@ -5,9 +5,11 @@ import (
 	"testing"
 
 	"github.com/MundoInvest/backend/internal/shared/config"
+	"github.com/MundoInvest/backend/internal/shared/mensagens"
 )
 
 func TestPipefyGraphQLClient_EstruturarMutationCreateCard(t *testing.T) {
+	catalogo := mensagens.ObterCatalogo()
 	client := NovoPipefyGraphQLClient("test_token", "https://api.pipefy.com/graphql")
 
 	tests := []struct {
@@ -45,7 +47,7 @@ func TestPipefyGraphQLClient_EstruturarMutationCreateCard(t *testing.T) {
 
 			if tt.esperadoErro {
 				if err == nil {
-					t.Error("Esperado erro, mas não houve erro")
+					t.Error(catalogo.Texto(mensagens.ErrEsperadoErro))
 				}
 			} else {
 				if err != nil {
@@ -60,6 +62,7 @@ func TestPipefyGraphQLClient_EstruturarMutationCreateCard(t *testing.T) {
 }
 
 func TestPipefyGraphQLClient_EstruturarMutationUpdateCard(t *testing.T) {
+	catalogo := mensagens.ObterCatalogo()
 	client := NovoPipefyGraphQLClient("test_token", "https://api.pipefy.com/graphql")
 
 	tests := []struct {
@@ -91,7 +94,7 @@ func TestPipefyGraphQLClient_EstruturarMutationUpdateCard(t *testing.T) {
 
 			if tt.esperadoErro {
 				if err == nil {
-					t.Error("Esperado erro, mas não houve erro")
+					t.Error(catalogo.Texto(mensagens.ErrEsperadoErro))
 				}
 			} else {
 				if err != nil {

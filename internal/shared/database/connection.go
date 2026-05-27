@@ -7,6 +7,7 @@ import (
 
 	"github.com/MundoInvest/backend/internal/shared/config"
 	"github.com/MundoInvest/backend/internal/shared/logger"
+	"github.com/MundoInvest/backend/internal/shared/mensagens"
 	_ "github.com/lib/pq"
 )
 
@@ -22,6 +23,7 @@ type ConfiguracaoBancoDados struct {
 
 // NovoBancoDados cria uma nova conexão com o banco de dados PostgreSQL
 func NovoBancoDados(cfg ConfiguracaoBancoDados, appConfig *config.Config) (*sql.DB, error) {
+	catalogo := mensagens.ObterCatalogo()
 	stringConexao := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		cfg.Host,
@@ -34,11 +36,11 @@ func NovoBancoDados(cfg ConfiguracaoBancoDados, appConfig *config.Config) (*sql.
 
 	banco, err := sql.Open("postgres", stringConexao)
 	if err != nil {
-		return nil, fmt.Errorf("erro ao abrir conexão com banco de dados: %w", err)
+		return nil, fmt.Errorf("%s: %w", catalogo.Texto(mensagens.ErrAbrirConexao), err)
 	}
 
 	if err = banco.Ping(); err != nil {
-		return nil, fmt.Errorf("erro ao testar conexão com banco de dados: %w", err)
+		return nil, fmt.Errorf("%s: %w", catalogo.Texto(mensagens.ErrTestarConexao), err)
 	}
 
 	banco.SetMaxOpenConns(appConfig.Database.MaxOpenConns)

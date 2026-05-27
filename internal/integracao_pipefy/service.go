@@ -6,6 +6,7 @@ import (
 
 	"github.com/MundoInvest/backend/internal/shared/config"
 	"github.com/MundoInvest/backend/internal/shared/errors"
+	"github.com/MundoInvest/backend/internal/shared/mensagens"
 )
 
 // PipefyIntegrationService define a interface para serviços de integração com Pipefy
@@ -38,6 +39,7 @@ func NewPipefyIntegrationService(client PipefyGraphQLClient, cfg *config.Config)
 
 // CriarCardCliente cria um card no Pipefy para um cliente
 func (s *pipefyIntegrationService) CriarCardCliente(ctx context.Context, pipeID string, dados CardClienteData) (string, error) {
+	catalogo := mensagens.ObterCatalogo()
 	ctx, cancel := context.WithTimeout(ctx, s.config.Timeouts.ExternalAPI)
 	defer cancel()
 
@@ -63,7 +65,7 @@ func (s *pipefyIntegrationService) CriarCardCliente(ctx context.Context, pipeID 
 
 	mutation, err := s.client.EstruturarMutationCreateCard(pipeID, fieldsAttributes)
 	if err != nil {
-		return "", errors.NewIntegrationError("Pipefy", "erro ao estruturar mutation createCard", err)
+		return "", errors.NewIntegrationError("Pipefy", catalogo.Texto(mensagens.ErrEstruturarMutacaoCriar), err)
 	}
 
 	// Executar mutation
@@ -72,7 +74,7 @@ func (s *pipefyIntegrationService) CriarCardCliente(ctx context.Context, pipeID 
 		if ctx.Err() == context.DeadlineExceeded {
 			return "", errors.NewTimeoutError("criar card no Pipefy", "timeout ao executar chamada externa")
 		}
-		return "", errors.NewIntegrationError("Pipefy", "erro ao executar mutation createCard", err)
+		return "", errors.NewIntegrationError("Pipefy", catalogo.Texto(mensagens.ErrExecutarMutacaoCriar), err)
 	}
 
 	return resultado, nil
@@ -80,6 +82,7 @@ func (s *pipefyIntegrationService) CriarCardCliente(ctx context.Context, pipeID 
 
 // AtualizarCardPrioridade atualiza a prioridade de um card no Pipefy
 func (s *pipefyIntegrationService) AtualizarCardPrioridade(ctx context.Context, cardID string, nivelPrioridade string) error {
+	catalogo := mensagens.ObterCatalogo()
 	ctx, cancel := context.WithTimeout(ctx, s.config.Timeouts.ExternalAPI)
 	defer cancel()
 
@@ -93,7 +96,7 @@ func (s *pipefyIntegrationService) AtualizarCardPrioridade(ctx context.Context, 
 
 	mutation, err := s.client.EstruturarMutationUpdateCard(cardID, fieldsAttributes)
 	if err != nil {
-		return errors.NewIntegrationError("Pipefy", "erro ao estruturar mutation updateCard", err)
+		return errors.NewIntegrationError("Pipefy", catalogo.Texto(mensagens.ErrEstruturarMutacaoAtualizar), err)
 	}
 
 	// Executar mutation
@@ -102,7 +105,7 @@ func (s *pipefyIntegrationService) AtualizarCardPrioridade(ctx context.Context, 
 		if ctx.Err() == context.DeadlineExceeded {
 			return errors.NewTimeoutError("atualizar card no Pipefy", "timeout ao executar chamada externa")
 		}
-		return errors.NewIntegrationError("Pipefy", "erro ao executar mutation updateCard", err)
+		return errors.NewIntegrationError("Pipefy", catalogo.Texto(mensagens.ErrExecutarMutacaoAtualizar), err)
 	}
 
 	return nil

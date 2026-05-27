@@ -2,8 +2,9 @@ package gestao_clientes
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
+
+	"github.com/MundoInvest/backend/internal/shared/mensagens"
 )
 
 // ClienteController manipula as requisições HTTP relacionadas a clientes
@@ -20,9 +21,12 @@ func NovoClienteController(service ClienteService) *ClienteController {
 
 // CriarClienteHandler manipula a requisição POST /clientes
 func (c *ClienteController) CriarClienteHandler(w http.ResponseWriter, r *http.Request) {
+	catalogo := mensagens.ObterCatalogo()
+	mapeadorHTTP := mensagens.NovoMapeadorHTTP()
+
 	// Verificar se o método é POST
 	if r.Method != http.MethodPost {
-		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		http.Error(w, catalogo.Texto(mensagens.ErrMetodoNaoPermitido), http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -30,7 +34,7 @@ func (c *ClienteController) CriarClienteHandler(w http.ResponseWriter, r *http.R
 	var requisicao RequisicaoCriarCliente
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&requisicao); err != nil {
-		http.Error(w, fmt.Sprintf("Erro ao parsear JSON: %s", err.Error()), http.StatusBadRequest)
+		http.Error(w, catalogo.Texto(mensagens.ErrProcessarJSON), mapeadorHTTP.StatusPara(mensagens.TipoHTTP))
 		return
 	}
 	defer r.Body.Close()
@@ -38,7 +42,7 @@ func (c *ClienteController) CriarClienteHandler(w http.ResponseWriter, r *http.R
 	// Validar o payload
 	if err := ValidarRequisicaoCriarCliente(requisicao); err != nil {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(mapeadorHTTP.StatusPara(mensagens.TipoValidacao))
 		json.NewEncoder(w).Encode(NewErrorResponse(err.Error()))
 		return
 	}
@@ -47,7 +51,7 @@ func (c *ClienteController) CriarClienteHandler(w http.ResponseWriter, r *http.R
 	cliente, err := c.service.CriarCliente(r.Context(), requisicao)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(mapeadorHTTP.StatusPara(mensagens.TipoServico))
 		json.NewEncoder(w).Encode(NewErrorResponse(err.Error()))
 		return
 	}
@@ -57,9 +61,10 @@ func (c *ClienteController) CriarClienteHandler(w http.ResponseWriter, r *http.R
 	w.WriteHeader(http.StatusCreated)
 
 	response := NewCriarClienteResponse(cliente)
+	response.Mensagem = catalogo.Texto(mensagens.CliCriadoSucesso)
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, fmt.Sprintf("Erro ao gerar resposta: %s", err.Error()), http.StatusInternalServerError)
+		http.Error(w, catalogo.Texto(mensagens.ErrGerarResposta), mapeadorHTTP.StatusPara(mensagens.TipoHTTP))
 		return
 	}
 }

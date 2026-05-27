@@ -2,6 +2,8 @@ package errors
 
 import (
 	"fmt"
+
+	"github.com/MundoInvest/backend/internal/shared/mensagens"
 )
 
 // ValidationError representa erros de validação de dados
@@ -11,10 +13,11 @@ type ValidationError struct {
 }
 
 func (e *ValidationError) Error() string {
+	catalogo := mensagens.ObterCatalogo()
 	if e.Field != "" {
-		return fmt.Sprintf("erro de validação no campo '%s': %s", e.Field, e.Message)
+		return fmt.Sprintf(catalogo.Texto(mensagens.ErrValidacaoCampo), e.Field, e.Message)
 	}
-	return fmt.Sprintf("erro de validação: %s", e.Message)
+	return fmt.Sprintf(catalogo.Texto(mensagens.ErrValidacao), e.Message)
 }
 
 // NewValidationError cria um novo erro de validação
@@ -32,7 +35,8 @@ type RepositoryError struct {
 }
 
 func (e *RepositoryError) Error() string {
-	return fmt.Sprintf("erro no repositório durante operação '%s': %v", e.Operation, e.Err)
+	catalogo := mensagens.ObterCatalogo()
+	return fmt.Sprintf(catalogo.Texto(mensagens.ErrRepositorio), e.Operation, e.Err)
 }
 
 func (e *RepositoryError) Unwrap() error {
@@ -55,10 +59,11 @@ type ServiceError struct {
 }
 
 func (e *ServiceError) Error() string {
+	catalogo := mensagens.ObterCatalogo()
 	if e.Err != nil {
-		return fmt.Sprintf("erro no serviço '%s': %s: %v", e.Service, e.Message, e.Err)
+		return fmt.Sprintf(catalogo.Texto(mensagens.ErrServicoComErro), e.Service, e.Message, e.Err)
 	}
-	return fmt.Sprintf("erro no serviço '%s': %s", e.Service, e.Message)
+	return fmt.Sprintf(catalogo.Texto(mensagens.ErrServico), e.Service, e.Message)
 }
 
 func (e *ServiceError) Unwrap() error {
@@ -82,10 +87,11 @@ type IntegrationError struct {
 }
 
 func (e *IntegrationError) Error() string {
+	catalogo := mensagens.ObterCatalogo()
 	if e.Err != nil {
-		return fmt.Sprintf("erro de integração com sistema '%s': %s: %v", e.System, e.Message, e.Err)
+		return fmt.Sprintf(catalogo.Texto(mensagens.ErrIntegracaoComErro), e.System, e.Message, e.Err)
 	}
-	return fmt.Sprintf("erro de integração com sistema '%s': %s", e.System, e.Message)
+	return fmt.Sprintf(catalogo.Texto(mensagens.ErrIntegracao), e.System, e.Message)
 }
 
 func (e *IntegrationError) Unwrap() error {
@@ -108,7 +114,8 @@ type TimeoutError struct {
 }
 
 func (e *TimeoutError) Error() string {
-	return fmt.Sprintf("timeout na operação '%s': %s", e.Operation, e.Message)
+	catalogo := mensagens.ObterCatalogo()
+	return fmt.Sprintf(catalogo.Texto(mensagens.ErrTimeout), e.Operation, e.Message)
 }
 
 // NewTimeoutError cria um novo erro de timeout
@@ -126,10 +133,11 @@ type NotFoundError struct {
 }
 
 func (e *NotFoundError) Error() string {
+	catalogo := mensagens.ObterCatalogo()
 	if e.ID != "" {
-		return fmt.Sprintf("recurso '%s' com ID '%s' não encontrado", e.Resource, e.ID)
+		return fmt.Sprintf(catalogo.Texto(mensagens.ErrNaoEncontradoComID), e.Resource, e.ID)
 	}
-	return fmt.Sprintf("recurso '%s' não encontrado", e.Resource)
+	return fmt.Sprintf(catalogo.Texto(mensagens.ErrNaoEncontrado), e.Resource)
 }
 
 // NewNotFoundError cria um novo erro de recurso não encontrado

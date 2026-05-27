@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/MundoInvest/backend/internal/shared/config"
+	"github.com/MundoInvest/backend/internal/shared/mensagens"
 )
 
 // RequisicaoCriarCliente representa o payload para criação de cliente
@@ -48,29 +49,30 @@ func (e *ErroValidacao) Error() string {
 
 // ValidarCriarClienteRequestDetalhado valida o payload e retorna erros detalhados
 func ValidarRequisicaoCriarClienteDetalhado(requisicao RequisicaoCriarCliente) []*ErroValidacao {
+	catalogo := mensagens.ObterCatalogo()
 	var erros []*ErroValidacao
 
 	if strings.TrimSpace(requisicao.Nome) == "" {
-		erros = append(erros, NewErroValidacao("nome", "nome é obrigatório"))
+		erros = append(erros, NewErroValidacao("nome", catalogo.Texto(mensagens.ValNomeObrigatorio)))
 	} else if len(strings.TrimSpace(requisicao.Nome)) < 3 {
-		erros = append(erros, NewErroValidacao("nome", "nome deve ter pelo menos 3 caracteres"))
+		erros = append(erros, NewErroValidacao("nome", catalogo.Texto(mensagens.ValNomeMinimoCaracteres)))
 	}
 
 	if strings.TrimSpace(requisicao.Email) == "" {
-		erros = append(erros, NewErroValidacao("email", "email é obrigatório"))
+		erros = append(erros, NewErroValidacao("email", catalogo.Texto(mensagens.ValEmailObrigatorio)))
 	} else {
 		strategy := NewClienteValidationStrategy()
 		if !strategy.isValidEmail(requisicao.Email) {
-			erros = append(erros, NewErroValidacao("email", "email inválido"))
+			erros = append(erros, NewErroValidacao("email", catalogo.Texto(mensagens.ValEmailInvalido)))
 		}
 	}
 
 	if strings.TrimSpace(requisicao.TipoSolicitacao) == "" {
-		erros = append(erros, NewErroValidacao("tipoSolicitacao", "tipoSolicitacao é obrigatório"))
+		erros = append(erros, NewErroValidacao("tipoSolicitacao", catalogo.Texto(mensagens.ValTipoSolicitacaoObrigatorio)))
 	}
 
 	if requisicao.ValorPatrimonio <= 0 {
-		erros = append(erros, NewErroValidacao("valorPatrimonio", "valorPatrimonio deve ser positivo"))
+		erros = append(erros, NewErroValidacao("valorPatrimonio", catalogo.Texto(mensagens.ValValorPatrimonioNegativo)))
 	}
 
 	return erros

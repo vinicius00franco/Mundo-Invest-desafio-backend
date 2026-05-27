@@ -3,6 +3,8 @@ package integracao_pipefy
 import (
 	"fmt"
 	"time"
+
+	"github.com/MundoInvest/backend/internal/shared/mensagens"
 )
 
 // PipefyGraphQLClient define a interface para integração com Pipefy via GraphQL
@@ -35,12 +37,13 @@ func NovoPipefyGraphQLClient(apiToken, apiURL string) PipefyGraphQLClient {
 // EstruturarMutationCreateCard estrutura a mutation GraphQL para criar card no Pipefy
 // Fonte: https://api-docs.pipefy.com/reference/mutations/#createcard
 func (c *pipefyGraphQLClient) EstruturarMutationCreateCard(pipeID string, fieldsAttributes []FieldAttribute) (string, error) {
+	catalogo := mensagens.ObterCatalogo()
 	if pipeID == "" {
-		return "", fmt.Errorf("pipe_id é obrigatório")
+		return "", fmt.Errorf(catalogo.Texto(mensagens.ErrCriarCardPipefy))
 	}
 
 	if len(fieldsAttributes) == 0 {
-		return "", fmt.Errorf("fields_attributes é obrigatório")
+		return "", fmt.Errorf(catalogo.Texto(mensagens.ErrCriarCardPipefy))
 	}
 
 	mutation := fmt.Sprintf(`mutation {
@@ -65,12 +68,13 @@ func (c *pipefyGraphQLClient) EstruturarMutationCreateCard(pipeID string, fields
 // EstruturarMutationUpdateCard estrutura a mutation GraphQL para atualizar card no Pipefy
 // Fonte: https://api-docs.pipefy.com/reference/mutations/#updatecard
 func (c *pipefyGraphQLClient) EstruturarMutationUpdateCard(cardID string, fieldsAttributes []FieldAttribute) (string, error) {
+	catalogo := mensagens.ObterCatalogo()
 	if cardID == "" {
-		return "", fmt.Errorf("card_id é obrigatório")
+		return "", fmt.Errorf(catalogo.Texto(mensagens.ErrAtualizarCardPipefy))
 	}
 
 	if len(fieldsAttributes) == 0 {
-		return "", fmt.Errorf("fields_attributes é obrigatório")
+		return "", fmt.Errorf(catalogo.Texto(mensagens.ErrAtualizarCardPipefy))
 	}
 
 	mutation := fmt.Sprintf(`mutation {

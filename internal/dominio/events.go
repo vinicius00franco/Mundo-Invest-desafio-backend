@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/MundoInvest/backend/internal/shared/logger"
+	"github.com/MundoInvest/backend/internal/shared/mensagens"
 )
 
 // Event representa um evento de domínio
@@ -119,7 +120,8 @@ func (d *InMemoryEventDispatcher) Dispatch(ctx context.Context, event Event) err
 			}()
 
 			if err := handler.Handle(ctx, event); err != nil {
-				logger.Error("Erro ao processar evento",
+				catalogo := mensagens.ObterCatalogo()
+				logger.Error(catalogo.Texto(mensagens.ErrProcessarEvento),
 					"event_type", event.EventType(),
 					"handler", handler.EventType(),
 					"error", err.Error(),

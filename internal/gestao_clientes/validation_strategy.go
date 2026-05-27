@@ -7,6 +7,7 @@ import (
 
 	"github.com/MundoInvest/backend/internal/shared/config"
 	"github.com/MundoInvest/backend/internal/shared/errors"
+	"github.com/MundoInvest/backend/internal/shared/mensagens"
 )
 
 // ValidationStrategy define a interface para estratégias de validação
@@ -38,45 +39,46 @@ func NewClienteValidationStrategyComConfig(cfg *config.Config) *ClienteValidatio
 
 // Validate valida um cliente
 func (s *ClienteValidationStrategy) Validate(obj interface{}) error {
+	catalogo := mensagens.ObterCatalogo()
 	requisicao, ok := obj.(RequisicaoCriarCliente)
 	if !ok {
-		return errors.NewValidationError("", "objeto inválido para validação de cliente")
+		return errors.NewValidationError("", catalogo.Texto(mensagens.ErrObjetoInvalido))
 	}
 
 	var erros []string
 
 	// Validar nome
 	if strings.TrimSpace(requisicao.Nome) == "" {
-		erros = append(erros, "nome é obrigatório")
+		erros = append(erros, catalogo.Texto(mensagens.ValNomeObrigatorio))
 	} else if len(strings.TrimSpace(requisicao.Nome)) < 3 {
-		erros = append(erros, "nome deve ter pelo menos 3 caracteres")
+		erros = append(erros, catalogo.Texto(mensagens.ValNomeMinimoCaracteres))
 	} else if len(strings.TrimSpace(requisicao.Nome)) > s.config.Business.MaxNomeLength {
-		erros = append(erros, fmt.Sprintf("nome deve ter no máximo %d caracteres", s.config.Business.MaxNomeLength))
+		erros = append(erros, catalogo.TextoFormatado(mensagens.ValNomeMaximoCaracteres, s.config.Business.MaxNomeLength))
 	}
 
 	// Validar email
 	if strings.TrimSpace(requisicao.Email) == "" {
-		erros = append(erros, "email é obrigatório")
+		erros = append(erros, catalogo.Texto(mensagens.ValEmailObrigatorio))
 	} else {
 		if !s.isValidEmail(requisicao.Email) {
-			erros = append(erros, "email inválido")
+			erros = append(erros, catalogo.Texto(mensagens.ValEmailInvalido))
 		} else if len(strings.TrimSpace(requisicao.Email)) > s.config.Business.MaxEmailLength {
-			erros = append(erros, fmt.Sprintf("email deve ter no máximo %d caracteres", s.config.Business.MaxEmailLength))
+			erros = append(erros, catalogo.TextoFormatado(mensagens.ValEmailMaximoCaracteres, s.config.Business.MaxEmailLength))
 		}
 	}
 
 	// Validar tipoSolicitacao
 	if strings.TrimSpace(requisicao.TipoSolicitacao) == "" {
-		erros = append(erros, "tipoSolicitacao é obrigatório")
+		erros = append(erros, catalogo.Texto(mensagens.ValTipoSolicitacaoObrigatorio))
 	} else if len(strings.TrimSpace(requisicao.TipoSolicitacao)) > s.config.Business.MaxTipoSolicitacaoLength {
-		erros = append(erros, fmt.Sprintf("tipoSolicitacao deve ter no máximo %d caracteres", s.config.Business.MaxTipoSolicitacaoLength))
+		erros = append(erros, catalogo.TextoFormatado(mensagens.ValTipoSolicitacaoMaximo, s.config.Business.MaxTipoSolicitacaoLength))
 	}
 
 	// Validar valorPatrimonio
 	if requisicao.ValorPatrimonio < s.config.Business.MinValorPatrimonio {
-		erros = append(erros, fmt.Sprintf("valorPatrimonio deve ser maior ou igual a %.2f", s.config.Business.MinValorPatrimonio))
+		erros = append(erros, catalogo.Texto(mensagens.ValValorPatrimonioObrigatorio))
 	} else if requisicao.ValorPatrimonio > s.config.Business.MaxValorPatrimonio {
-		erros = append(erros, fmt.Sprintf("valorPatrimonio deve ser menor ou igual a %.2f", s.config.Business.MaxValorPatrimonio))
+		erros = append(erros, catalogo.TextoFormatado(mensagens.ValorPatrimonioMaximo, s.config.Business.MaxValorPatrimonio))
 	}
 
 	if len(erros) > 0 {
@@ -136,9 +138,10 @@ func (c *ValidationContext) AddStrategy(strategy ValidationStrategy) {
 
 // Validate executa todas as estratégias de validação
 func (c *ValidationContext) Validate(obj interface{}) error {
+	catalogo := mensagens.ObterCatalogo()
 	for _, strategy := range c.strategies {
 		if err := strategy.Validate(obj); err != nil {
-			return fmt.Errorf("erro na estratégia %s: %w", strategy.StrategyName(), err)
+			return fmt.Errorf(catalogo.Texto(mensagens.ErrEstrategiaValidacao), strategy.StrategyName(), err)
 		}
 	}
 	return nil

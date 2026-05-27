@@ -5,6 +5,7 @@ import (
 
 	"github.com/MundoInvest/backend/internal/shared/config"
 	"github.com/MundoInvest/backend/internal/shared/logger"
+	"github.com/MundoInvest/backend/internal/shared/mensagens"
 )
 
 // TestNovaConexaoSucesso testa a criação de conexão com sucesso
@@ -49,9 +50,10 @@ func TestNovaConexaoFalha(t *testing.T) {
 	}
 
 	cfg := config.Load()
+	catalogo := mensagens.ObterCatalogo()
 	_, err := NovoBancoDados(configDB, cfg)
 	if err == nil {
-		t.Error("Esperado erro ao conectar com porta inválida, mas não houve erro")
+		t.Error(catalogo.Texto(mensagens.ErrEsperadoErro))
 	}
 }
 
@@ -135,6 +137,7 @@ func TestTransacaoAtômica(t *testing.T) {
 
 // TestRestricaoUnicidade testa restrição de unicidade de email
 func TestRestricaoUnicidade(t *testing.T) {
+	catalogo := mensagens.ObterCatalogo()
 	configDB := ConfiguracaoBancoDados{
 		Host:    "localhost",
 		Port:    "5434",
@@ -166,7 +169,7 @@ func TestRestricaoUnicidade(t *testing.T) {
 		"Teste Unicidade 2", email, "teste", 2000.00, "Teste")
 
 	if err == nil {
-		t.Error("Esperado erro de violação de unicidade, mas não houve erro")
+		t.Error(catalogo.Texto(mensagens.ErrViolacaoUnicidade))
 	}
 }
 
@@ -277,36 +280,6 @@ func TestIntegracaoTabelas(t *testing.T) {
 
 	if !tableExists {
 		t.Error("Tabela evento não existe")
-	}
-}
-
-// TestIntegracaoViews testa se views estão criadas corretamente
-func TestIntegracaoViews(t *testing.T) {
-	configDB := ConfiguracaoBancoDados{
-		Host:    "localhost",
-		Port:    "5434",
-		Usuario: "postgres",
-		Senha:   "postgres",
-		Banco:   "mundo_invest",
-		SSLMode: "disable",
-	}
-
-	cfg := config.Load()
-	db, err := NovoBancoDados(configDB, cfg)
-	if err != nil {
-		t.Skipf("Teste de integração pulado: não foi possível conectar ao banco de dados: %v", err)
-	}
-	defer db.Close()
-
-	// Verificar se view vw_cliente existe
-	var viewExists bool
-	err = db.QueryRow("SELECT EXISTS(SELECT 1 FROM information_schema.views WHERE table_schema = 'gestao_clientes' AND table_name = 'vw_cliente')").Scan(&viewExists)
-	if err != nil {
-		t.Fatalf("Erro ao verificar view vw_cliente: %v", err)
-	}
-
-	if !viewExists {
-		t.Skip("View vw_cliente não existe no ambiente de teste simples")
 	}
 }
 

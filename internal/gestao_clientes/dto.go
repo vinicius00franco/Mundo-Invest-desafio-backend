@@ -23,7 +23,7 @@ type ErrorResponse struct {
 // NewCriarClienteResponse cria uma nova resposta de criação de cliente
 func NewCriarClienteResponse(cliente *Cliente) CriarClienteResponse {
 	return CriarClienteResponse{
-		Mensagem:             "Cliente criado com sucesso",
+		Mensagem:             "", // Será definido pelo controller
 		IdentificadorInterno: cliente.IdentificadorInterno,
 		IdentificadorExterno: cliente.IdentificadorExterno,
 		Nome:                 cliente.Nome,

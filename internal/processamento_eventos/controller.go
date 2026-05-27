@@ -2,10 +2,10 @@ package processamento_eventos
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/MundoInvest/backend/internal/shared/errors"
+	"github.com/MundoInvest/backend/internal/shared/mensagens"
 )
 
 // EventoController manipula as requisições HTTP relacionadas a eventos
@@ -22,9 +22,12 @@ func NovoEventoController(service WebhookService) *EventoController {
 
 // ProcessarWebhookHandler manipula a requisição POST /webhooks/pipefy/card-updated
 func (c *EventoController) ProcessarWebhookHandler(w http.ResponseWriter, r *http.Request) {
+	catalogo := mensagens.ObterCatalogo()
+	mapeadorHTTP := mensagens.NovoMapeadorHTTP()
+
 	// Verificar se o método é POST
 	if r.Method != http.MethodPost {
-		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
+		http.Error(w, catalogo.Texto(mensagens.ErrMetodoNaoPermitido), http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -32,14 +35,14 @@ func (c *EventoController) ProcessarWebhookHandler(w http.ResponseWriter, r *htt
 	var requisicao RequisicaoWebhook
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&requisicao); err != nil {
-		http.Error(w, fmt.Sprintf("Erro ao parsear JSON: %s", err.Error()), http.StatusBadRequest)
+		http.Error(w, catalogo.Texto(mensagens.ErrProcessarJSON), mapeadorHTTP.StatusPara(mensagens.TipoHTTP))
 		return
 	}
 	defer r.Body.Close()
 
 	// Validar o payload
 	if err := ValidarRequisicaoWebhook(requisicao); err != nil {
-		http.Error(w, fmt.Sprintf("Erro de validação: %s", err.Error()), http.StatusBadRequest)
+		http.Error(w, err.Error(), mapeadorHTTP.StatusPara(mensagens.TipoValidacao))
 		return
 	}
 
@@ -47,10 +50,10 @@ func (c *EventoController) ProcessarWebhookHandler(w http.ResponseWriter, r *htt
 	if err := c.service.ProcessarWebhook(r.Context(), requisicao); err != nil {
 		// Verificar se é erro de cliente não encontrado
 		if _, ok := err.(*errors.NotFoundError); ok {
-			http.Error(w, "Cliente não encontrado", http.StatusNotFound)
+			http.Error(w, catalogo.Texto(mensagens.ErrClienteNaoEncontrado), http.StatusNotFound)
 			return
 		}
-		http.Error(w, fmt.Sprintf("Erro ao processar webhook: %s", err.Error()), http.StatusInternalServerError)
+		http.Error(w, catalogo.Texto(mensagens.ErrProcessarWebhook), mapeadorHTTP.StatusPara(mensagens.TipoServico))
 		return
 	}
 
@@ -59,14 +62,14 @@ func (c *EventoController) ProcessarWebhookHandler(w http.ResponseWriter, r *htt
 	w.WriteHeader(http.StatusOK)
 
 	response := map[string]interface{}{
-		"mensagem":            "Webhook processado com sucesso",
+		"mensagem":            catalogo.Texto(mensagens.WebhookProcessado),
 		"identificadorEvento": requisicao.IdentificadorEvento,
 		"identificadorCard":   requisicao.IdentificadorCard,
 		"emailCliente":        requisicao.EmailCliente,
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, fmt.Sprintf("Erro ao gerar resposta: %s", err.Error()), http.StatusInternalServerError)
+		http.Error(w, catalogo.Texto(mensagens.ErrGerarResposta), mapeadorHTTP.StatusPara(mensagens.TipoHTTP))
 		return
 	}
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/MundoInvest/backend/internal/integracao_pipefy"
 	"github.com/MundoInvest/backend/internal/shared/config"
 	"github.com/MundoInvest/backend/internal/shared/errors"
+	"github.com/MundoInvest/backend/internal/shared/mensagens"
 )
 
 // ClienteService define a interface para operações de negócio de clientes
@@ -44,6 +45,7 @@ func NovoClienteService(
 
 // CriarCliente cria um novo cliente seguindo as regras de negócio
 func (s *clienteService) CriarCliente(ctx context.Context, requisicao RequisicaoCriarCliente) (*Cliente, error) {
+	catalogo := mensagens.ObterCatalogo()
 	ctx, cancel := context.WithTimeout(ctx, s.config.Timeouts.Default)
 	defer cancel()
 
@@ -71,7 +73,7 @@ func (s *clienteService) CriarCliente(ctx context.Context, requisicao Requisicao
 	// Salvar cliente no banco de dados
 	clienteSalvo, err := s.repository.Salvar(ctx, cliente)
 	if err != nil {
-		return nil, errors.NewServiceError("ClienteService", "erro ao salvar cliente", err)
+		return nil, errors.NewServiceError("ClienteService", catalogo.Texto(mensagens.ErrSalvarCliente), err)
 	}
 
 	// Integrar com Pipefy usando o serviço dedicado
@@ -84,13 +86,13 @@ func (s *clienteService) CriarCliente(ctx context.Context, requisicao Requisicao
 
 	cardID, err := s.pipefyService.CriarCardCliente(ctx, s.pipeID, cardData)
 	if err != nil {
-		return nil, errors.NewIntegrationError("Pipefy", "erro ao criar card no Pipefy", err)
+		return nil, errors.NewIntegrationError("Pipefy", catalogo.Texto(mensagens.ErrCriarCardPipefy), err)
 	}
 
 	// Atualizar identificador externo com o card ID retornado
 	clienteSalvo.IdentificadorExterno = cardID
 	if err := s.repository.Atualizar(ctx, *clienteSalvo); err != nil {
-		return nil, errors.NewServiceError("ClienteService", "erro ao atualizar cliente com card ID", err)
+		return nil, errors.NewServiceError("ClienteService", catalogo.Texto(mensagens.ErrAtualizarCliente), err)
 	}
 
 	// Emitir evento de domínio
@@ -108,7 +110,8 @@ func (s *clienteService) CriarCliente(ctx context.Context, requisicao Requisicao
 		)
 		if err := s.eventDispatcher.Dispatch(ctx, evento); err != nil {
 			// Log error mas não falhar a operação
-			fmt.Printf("Erro ao despachar evento: %v\n", err)
+			catalogo := mensagens.ObterCatalogo()
+			fmt.Printf(catalogo.TextoFormatado(mensagens.ErrDespacharEvento), err)
 		}
 	}
 
