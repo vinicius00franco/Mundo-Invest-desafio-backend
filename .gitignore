@@ -66,6 +66,7 @@ coverage/
 *.out
 go.work
 vendor/
+server
 
 # Python
 __pycache__/
