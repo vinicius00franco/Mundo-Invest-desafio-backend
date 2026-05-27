@@ -52,51 +52,51 @@ func (c *Catalogo) inicializarMensagens() {
 
 	// Mensagens de Validação
 	c.mensagens[ValNomeObrigatorio] = Mensagem{
-		Texto: "nome é obrigatório",
+		Texto: "cliente_nome é obrigatório",
 	}
 
 	c.mensagens[ValEmailObrigatorio] = Mensagem{
-		Texto: "email é obrigatório",
+		Texto: "cliente_email é obrigatório",
 	}
 
 	c.mensagens[ValTipoSolicitacaoObrigatorio] = Mensagem{
-		Texto: "tipoSolicitacao é obrigatório",
+		Texto: "tipo_solicitacao é obrigatório",
 	}
 
 	c.mensagens[ValValorPatrimonioObrigatorio] = Mensagem{
-		Texto: "valorPatrimonio é obrigatório",
+		Texto: "valor_patrimonio é obrigatório",
 	}
 
 	c.mensagens[ValNomeMinimoCaracteres] = Mensagem{
-		Texto: "nome deve ter pelo menos 3 caracteres",
+		Texto: "cliente_nome deve ter pelo menos 3 caracteres",
 	}
 
 	c.mensagens[ValNomeMaximoCaracteres] = Mensagem{
-		Texto: "nome deve ter no máximo %d caracteres",
+		Texto: "cliente_nome deve ter no máximo %d caracteres",
 	}
 
 	c.mensagens[ValEmailInvalido] = Mensagem{
-		Texto: "email inválido",
+		Texto: "cliente_email inválido",
 	}
 
 	c.mensagens[ValEmailMaximoCaracteres] = Mensagem{
-		Texto: "email deve ter no máximo %d caracteres",
+		Texto: "cliente_email deve ter no máximo %d caracteres",
 	}
 
 	c.mensagens[ValValorPatrimonioNegativo] = Mensagem{
-		Texto: "valorPatrimonio deve ser positivo",
+		Texto: "valor_patrimonio deve ser positivo",
 	}
 
 	c.mensagens[ValValorPatrimonioZero] = Mensagem{
-		Texto: "valorPatrimonio deve ser maior que zero",
+		Texto: "valor_patrimonio deve ser maior que zero",
 	}
 
 	c.mensagens[ValorPatrimonioMaximo] = Mensagem{
-		Texto: "valorPatrimonio deve ser menor ou igual a %.2f",
+		Texto: "valor_patrimonio deve ser menor ou igual a %.2f",
 	}
 
 	c.mensagens[ValTipoSolicitacaoMaximo] = Mensagem{
-		Texto: "tipoSolicitacao deve ter no máximo %d caracteres",
+		Texto: "tipo_solicitacao deve ter no máximo %d caracteres",
 	}
 
 	// Validação Webhook

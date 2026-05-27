@@ -62,10 +62,10 @@ func (c *EventoController) ProcessarWebhookHandler(w http.ResponseWriter, r *htt
 	w.WriteHeader(http.StatusOK)
 
 	response := map[string]interface{}{
-		"mensagem":            catalogo.Texto(mensagens.WebhookProcessado),
-		"identificadorEvento": requisicao.IdentificadorEvento,
-		"identificadorCard":   requisicao.IdentificadorCard,
-		"emailCliente":        requisicao.EmailCliente,
+		"mensagem":      catalogo.Texto(mensagens.WebhookProcessado),
+		"event_id":      requisicao.IdentificadorEvento,
+		"card_id":       requisicao.IdentificadorCard,
+		"cliente_email": requisicao.EmailCliente,
 	}
 
 	if err := json.NewEncoder(w).Encode(response); err != nil {

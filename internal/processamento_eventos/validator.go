@@ -6,48 +6,45 @@ import (
 	"net/mail"
 	"strings"
 	"time"
-
-	"github.com/MundoInvest/backend/internal/shared/mensagens"
 )
 
 // WebhookRequest representa o payload para processamento de webhook
 type RequisicaoWebhook struct {
-	IdentificadorEvento string `json:"identificadorEvento"`
-	IdentificadorCard   string `json:"identificadorCard"`
-	EmailCliente        string `json:"emailCliente"`
-	DataEvento          string `json:"dataEvento"`
+	IdentificadorEvento string `json:"event_id"`
+	IdentificadorCard   string `json:"card_id"`
+	EmailCliente        string `json:"cliente_email"`
+	DataEvento          string `json:"timestamp"`
 }
 
 // ValidarWebhookRequest valida o payload de webhook
 func ValidarRequisicaoWebhook(requisicao RequisicaoWebhook) error {
-	catalogo := mensagens.ObterCatalogo()
 	var erros []string
 
 	// Validar identificadorEvento
 	if strings.TrimSpace(requisicao.IdentificadorEvento) == "" {
-		erros = append(erros, catalogo.Texto(mensagens.ValIdEventoObrigatorio))
+		erros = append(erros, "event_id é obrigatório")
 	}
 
 	// Validar identificadorCard
 	if strings.TrimSpace(requisicao.IdentificadorCard) == "" {
-		erros = append(erros, catalogo.Texto(mensagens.ValIdCardObrigatorio))
+		erros = append(erros, "card_id é obrigatório")
 	}
 
 	// Validar emailCliente
 	if strings.TrimSpace(requisicao.EmailCliente) == "" {
-		erros = append(erros, catalogo.Texto(mensagens.ValEmailClienteObrigatorio))
+		erros = append(erros, "cliente_email é obrigatório")
 	} else {
 		if !isValidEmail(requisicao.EmailCliente) {
-			erros = append(erros, catalogo.Texto(mensagens.ValEmailClienteInvalido))
+			erros = append(erros, "cliente_email inválido")
 		}
 	}
 
 	// Validar dataEvento
 	if strings.TrimSpace(requisicao.DataEvento) == "" {
-		erros = append(erros, catalogo.Texto(mensagens.ValDataEventoObrigatorio))
+		erros = append(erros, "timestamp é obrigatório")
 	} else {
 		if !isValidTimestamp(requisicao.DataEvento) {
-			erros = append(erros, catalogo.Texto(mensagens.ValDataEventoInvalido))
+			erros = append(erros, "timestamp inválido")
 		}
 	}
 
@@ -72,31 +69,28 @@ func isValidTimestamp(timestamp string) bool {
 
 // ValidarIdentificadorEvento valida o identificador do evento
 func ValidarIdentificadorEvento(identificador string) error {
-	catalogo := mensagens.ObterCatalogo()
 	if strings.TrimSpace(identificador) == "" {
-		return errors.New(catalogo.Texto(mensagens.ValIdEventoObrigatorio))
+		return errors.New("event_id é obrigatório")
 	}
 	return nil
 }
 
 // ValidarIdentificadorCard valida o identificador do card
 func ValidarIdentificadorCard(identificador string) error {
-	catalogo := mensagens.ObterCatalogo()
 	if strings.TrimSpace(identificador) == "" {
-		return errors.New(catalogo.Texto(mensagens.ValIdCardObrigatorio))
+		return errors.New("card_id é obrigatório")
 	}
 	return nil
 }
 
 // ValidarEmailCliente valida o email do cliente
 func ValidarEmailCliente(email string) error {
-	catalogo := mensagens.ObterCatalogo()
 	if strings.TrimSpace(email) == "" {
-		return errors.New(catalogo.Texto(mensagens.ValEmailClienteObrigatorio))
+		return errors.New("cliente_email é obrigatório")
 	}
 
 	if !isValidEmail(email) {
-		return errors.New(catalogo.Texto(mensagens.ValEmailClienteInvalido))
+		return errors.New("cliente_email inválido")
 	}
 
 	return nil
@@ -104,13 +98,12 @@ func ValidarEmailCliente(email string) error {
 
 // ValidarDataEvento valida a data do evento
 func ValidarDataEvento(data string) error {
-	catalogo := mensagens.ObterCatalogo()
 	if strings.TrimSpace(data) == "" {
-		return errors.New(catalogo.Texto(mensagens.ValDataEventoObrigatorio))
+		return errors.New("timestamp é obrigatório")
 	}
 
 	if !isValidTimestamp(data) {
-		return errors.New(catalogo.Texto(mensagens.ValDataEventoInvalido))
+		return errors.New("timestamp inválido")
 	}
 
 	return nil
@@ -137,27 +130,26 @@ func (e *ErroValidacaoWebhook) Error() string {
 
 // ValidarWebhookRequestDetalhado valida o payload e retorna erros detalhados
 func ValidarRequisicaoWebhookDetalhado(requisicao RequisicaoWebhook) []*ErroValidacaoWebhook {
-	catalogo := mensagens.ObterCatalogo()
 	var erros []*ErroValidacaoWebhook
 
 	if strings.TrimSpace(requisicao.IdentificadorEvento) == "" {
-		erros = append(erros, NewErroValidacaoWebhook("identificadorEvento", catalogo.Texto(mensagens.ValIdEventoObrigatorio)))
+		erros = append(erros, NewErroValidacaoWebhook("event_id", "event_id é obrigatório"))
 	}
 
 	if strings.TrimSpace(requisicao.IdentificadorCard) == "" {
-		erros = append(erros, NewErroValidacaoWebhook("identificadorCard", catalogo.Texto(mensagens.ValIdCardObrigatorio)))
+		erros = append(erros, NewErroValidacaoWebhook("card_id", "card_id é obrigatório"))
 	}
 
 	if strings.TrimSpace(requisicao.EmailCliente) == "" {
-		erros = append(erros, NewErroValidacaoWebhook("emailCliente", catalogo.Texto(mensagens.ValEmailClienteObrigatorio)))
+		erros = append(erros, NewErroValidacaoWebhook("cliente_email", "cliente_email é obrigatório"))
 	} else if !isValidEmail(requisicao.EmailCliente) {
-		erros = append(erros, NewErroValidacaoWebhook("emailCliente", catalogo.Texto(mensagens.ValEmailClienteInvalido)))
+		erros = append(erros, NewErroValidacaoWebhook("cliente_email", "cliente_email inválido"))
 	}
 
 	if strings.TrimSpace(requisicao.DataEvento) == "" {
-		erros = append(erros, NewErroValidacaoWebhook("dataEvento", catalogo.Texto(mensagens.ValDataEventoObrigatorio)))
+		erros = append(erros, NewErroValidacaoWebhook("timestamp", "timestamp é obrigatório"))
 	} else if !isValidTimestamp(requisicao.DataEvento) {
-		erros = append(erros, NewErroValidacaoWebhook("dataEvento", catalogo.Texto(mensagens.ValDataEventoInvalido)))
+		erros = append(erros, NewErroValidacaoWebhook("timestamp", "timestamp inválido"))
 	}
 
 	return erros

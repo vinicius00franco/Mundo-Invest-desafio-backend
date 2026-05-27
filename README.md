@@ -156,10 +156,10 @@ Cria um novo cliente e integra com o Pipefy.
 curl -X POST http://localhost:8080/clientes \
   -H "Content-Type: application/json" \
   -d '{
-    "nome": "João Silva",
-    "email": "joao.silva@example.com",
-    "tipoSolicitacao": "abertura_conta",
-    "valorPatrimonio": 150000.00
+    "cliente_nome": "João Silva",
+    "cliente_email": "joao.silva@example.com",
+    "tipo_solicitacao": "abertura_conta",
+    "valor_patrimonio": 150000.00
   }'
 ```
 
@@ -167,14 +167,14 @@ curl -X POST http://localhost:8080/clientes \
 ```json
 {
   "mensagem": "Cliente criado com sucesso",
-  "identificadorInterno": 1,
-  "identificadorExterno": "card_123",
-  "nome": "João Silva",
-  "email": "joao.silva@example.com",
-  "valorPatrimonio": 150000.00,
-  "tipoSolicitacao": "abertura_conta",
+  "identificador_interno": 1,
+  "identificador_externo": "card_123",
+  "cliente_nome": "João Silva",
+  "cliente_email": "joao.silva@example.com",
+  "valor_patrimonio": 150000.00,
+  "tipo_solicitacao": "abertura_conta",
   "status": "Aguardando Análise",
-  "dataCriacao": "2026-05-27T10:00:00Z"
+  "data_criacao": "2026-05-27T10:00:00Z"
 }
 ```
 
@@ -187,10 +187,10 @@ Processa webhooks do Pipefy de forma idempotente.
 curl -X POST http://localhost:8080/webhooks/pipefy/card-updated \
   -H "Content-Type: application/json" \
   -d '{
-    "identificadorEvento": "evt_12345",
-    "identificadorCard": "card_67890",
-    "clienteEmail": "joao.silva@example.com",
-    "dataEvento": "2026-05-27T10:00:00Z"
+    "event_id": "evt_12345",
+    "card_id": "card_67890",
+    "cliente_email": "joao.silva@example.com",
+    "timestamp": "2026-05-27T10:00:00Z"
   }'
 ```
 
@@ -198,9 +198,9 @@ curl -X POST http://localhost:8080/webhooks/pipefy/card-updated \
 ```json
 {
   "mensagem": "Webhook processado com sucesso",
-  "identificadorEvento": "evt_12345",
-  "identificadorCard": "card_67890",
-  "clienteEmail": "joao.silva@example.com"
+  "event_id": "evt_12345",
+  "card_id": "card_67890",
+  "cliente_email": "joao.silva@example.com"
 }
 ```
 

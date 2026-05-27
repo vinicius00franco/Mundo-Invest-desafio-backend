@@ -5,14 +5,14 @@ import "time"
 // CriarClienteResponse representa a resposta de criação de cliente
 type CriarClienteResponse struct {
 	Mensagem             string    `json:"mensagem"`
-	IdentificadorInterno int64     `json:"identificadorInterno"`
-	IdentificadorExterno string    `json:"identificadorExterno"`
-	Nome                 string    `json:"nome"`
-	Email                string    `json:"email"`
-	ValorPatrimonio      float64   `json:"valorPatrimonio"`
-	TipoSolicitacao      string    `json:"tipoSolicitacao"`
+	IdentificadorInterno int64     `json:"identificador_interno"`
+	IdentificadorExterno string    `json:"identificador_externo"`
+	Nome                 string    `json:"cliente_nome"`
+	Email                string    `json:"cliente_email"`
+	ValorPatrimonio      float64   `json:"valor_patrimonio"`
+	TipoSolicitacao      string    `json:"tipo_solicitacao"`
 	Status               string    `json:"status"`
-	DataCriacao          time.Time `json:"dataCriacao"`
+	DataCriacao          time.Time `json:"data_criacao"`
 }
 
 // ErrorResponse representa uma resposta de erro padronizada

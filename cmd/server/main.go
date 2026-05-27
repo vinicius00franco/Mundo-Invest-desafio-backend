@@ -9,9 +9,15 @@ import (
 	"github.com/MundoInvest/backend/internal/server"
 	"github.com/MundoInvest/backend/internal/shared/config"
 	"github.com/MundoInvest/backend/internal/shared/logger"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Carregar variáveis de ambiente do arquivo .env
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Aviso: Não foi possível carregar arquivo .env: %v", err)
+	}
+
 	// Inicializar logger
 	logger.Init()
 

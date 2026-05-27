@@ -10,10 +10,10 @@ import (
 
 // RequisicaoCriarCliente representa o payload para criação de cliente
 type RequisicaoCriarCliente struct {
-	Nome            string  `json:"nome"`
-	Email           string  `json:"email"`
-	ValorPatrimonio float64 `json:"valorPatrimonio"`
-	TipoSolicitacao string  `json:"tipoSolicitacao"`
+	Nome            string  `json:"cliente_nome"`
+	Email           string  `json:"cliente_email"`
+	ValorPatrimonio float64 `json:"valor_patrimonio"`
+	TipoSolicitacao string  `json:"tipo_solicitacao"`
 }
 
 // ValidarCriarClienteRequest valida o payload de criação de cliente usando Strategy Pattern
@@ -53,26 +53,26 @@ func ValidarRequisicaoCriarClienteDetalhado(requisicao RequisicaoCriarCliente) [
 	var erros []*ErroValidacao
 
 	if strings.TrimSpace(requisicao.Nome) == "" {
-		erros = append(erros, NewErroValidacao("nome", catalogo.Texto(mensagens.ValNomeObrigatorio)))
+		erros = append(erros, NewErroValidacao("cliente_nome", catalogo.Texto(mensagens.ValNomeObrigatorio)))
 	} else if len(strings.TrimSpace(requisicao.Nome)) < 3 {
-		erros = append(erros, NewErroValidacao("nome", catalogo.Texto(mensagens.ValNomeMinimoCaracteres)))
+		erros = append(erros, NewErroValidacao("cliente_nome", catalogo.Texto(mensagens.ValNomeMinimoCaracteres)))
 	}
 
 	if strings.TrimSpace(requisicao.Email) == "" {
-		erros = append(erros, NewErroValidacao("email", catalogo.Texto(mensagens.ValEmailObrigatorio)))
+		erros = append(erros, NewErroValidacao("cliente_email", catalogo.Texto(mensagens.ValEmailObrigatorio)))
 	} else {
 		strategy := NewClienteValidationStrategy()
 		if !strategy.isValidEmail(requisicao.Email) {
-			erros = append(erros, NewErroValidacao("email", catalogo.Texto(mensagens.ValEmailInvalido)))
+			erros = append(erros, NewErroValidacao("cliente_email", catalogo.Texto(mensagens.ValEmailInvalido)))
 		}
 	}
 
 	if strings.TrimSpace(requisicao.TipoSolicitacao) == "" {
-		erros = append(erros, NewErroValidacao("tipoSolicitacao", catalogo.Texto(mensagens.ValTipoSolicitacaoObrigatorio)))
+		erros = append(erros, NewErroValidacao("tipo_solicitacao", catalogo.Texto(mensagens.ValTipoSolicitacaoObrigatorio)))
 	}
 
 	if requisicao.ValorPatrimonio <= 0 {
-		erros = append(erros, NewErroValidacao("valorPatrimonio", catalogo.Texto(mensagens.ValValorPatrimonioNegativo)))
+		erros = append(erros, NewErroValidacao("valor_patrimonio", catalogo.Texto(mensagens.ValValorPatrimonioNegativo)))
 	}
 
 	return erros

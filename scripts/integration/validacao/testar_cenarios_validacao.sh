@@ -72,10 +72,10 @@ executar_teste() {
 
 # Cenário 1: Criar cliente com e-mail inválido
 PAYLOAD1='{
-  "nome": "João Silva",
-  "email": "email-invalido",
-  "tipoSolicitacao": "Atualização cadastral",
-  "valorPatrimonio": 250000
+  "cliente_nome": "João Silva",
+  "cliente_email": "email-invalido",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 250000
 }'
 executar_teste "CENÁRIO 1: Criar cliente com e-mail inválido" \
   "Tentar criar cliente com e-mail em formato inválido" \
@@ -85,36 +85,36 @@ executar_teste "CENÁRIO 1: Criar cliente com e-mail inválido" \
 # Cenário 2: Criar cliente com patrimônio negativo
 UNIQUE_EMAIL2="joao.silva2.${TIMESTAMP}@example.com"
 PAYLOAD2="{
-  \"nome\": \"João Silva\",
-  \"email\": \"${UNIQUE_EMAIL2}\",
-  \"tipoSolicitacao\": \"Atualização cadastral\",
-  \"valorPatrimonio\": -1000
+  \"cliente_nome\": \"João Silva\",
+  \"cliente_email\": \"${UNIQUE_EMAIL2}\",
+  \"tipo_solicitacao\": \"Atualização cadastral\",
+  \"valor_patrimonio\": -1000
 }"
 executar_teste "CENÁRIO 2: Criar cliente com patrimônio negativo" \
   "Tentar criar cliente com valor de patrimônio negativo" \
   "$PAYLOAD2" \
   "400"
 
-# Cenário 3: Criar cliente com patrimônio zero
+# Cenário 3: Criar cliente com patrimônio zero (agora permitido)
 UNIQUE_EMAIL3="joao.silva3.${TIMESTAMP}@example.com"
 PAYLOAD3="{
-  \"nome\": \"João Silva\",
-  \"email\": \"${UNIQUE_EMAIL3}\",
-  \"tipoSolicitacao\": \"Atualização cadastral\",
-  \"valorPatrimonio\": 0
+  \"cliente_nome\": \"João Silva\",
+  \"cliente_email\": \"${UNIQUE_EMAIL3}\",
+  \"tipo_solicitacao\": \"Atualização cadastral\",
+  \"valor_patrimonio\": 0
 }"
-executar_teste "CENÁRIO 3: Criar cliente com patrimônio zero" \
-  "Tentar criar cliente com valor de patrimônio igual a zero" \
+executar_teste "CENÁRIO 3: Criar cliente com patrimônio zero (agora permitido)" \
+  "Criar cliente com valor de patrimônio igual a zero (agora permitido)" \
   "$PAYLOAD3" \
-  "400"
+  "201"
 
 # Cenário 4: Criar cliente com nome vazio
 UNIQUE_EMAIL4="joao.silva4.${TIMESTAMP}@example.com"
 PAYLOAD4="{
-  \"nome\": \"\",
-  \"email\": \"${UNIQUE_EMAIL4}\",
-  \"tipoSolicitacao\": \"Atualização cadastral\",
-  \"valorPatrimonio\": 250000
+  \"cliente_nome\": \"\",
+  \"cliente_email\": \"${UNIQUE_EMAIL4}\",
+  \"tipo_solicitacao\": \"Atualização cadastral\",
+  \"valor_patrimonio\": 250000
 }"
 executar_teste "CENÁRIO 4: Criar cliente com nome vazio" \
   "Tentar criar cliente com nome em branco" \
@@ -123,25 +123,25 @@ executar_teste "CENÁRIO 4: Criar cliente com nome vazio" \
 
 # Cenário 5: Criar cliente com e-mail vazio
 PAYLOAD5='{
-  "nome": "João Silva",
-  "email": "",
-  "tipoSolicitacao": "Atualização cadastral",
-  "valorPatrimonio": 250000
+  "cliente_nome": "João Silva",
+  "cliente_email": "",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 250000
 }'
 executar_teste "CENÁRIO 5: Criar cliente com e-mail vazio" \
   "Tentar criar cliente com e-mail em branco" \
   "$PAYLOAD5" \
   "400"
 
-# Cenário 6: Criar cliente com tipoSolicitacao vazio
+# Cenário 6: Criar cliente com tipo_solicitacao vazio
 UNIQUE_EMAIL6="joao.silva6.${TIMESTAMP}@example.com"
 PAYLOAD6="{
-  \"nome\": \"João Silva\",
-  \"email\": \"${UNIQUE_EMAIL6}\",
-  \"tipoSolicitacao\": \"\",
-  \"valorPatrimonio\": 250000
+  \"cliente_nome\": \"João Silva\",
+  \"cliente_email\": \"${UNIQUE_EMAIL6}\",
+  \"tipo_solicitacao\": \"\",
+  \"valor_patrimonio\": 250000
 }"
-executar_teste "CENÁRIO 6: Criar cliente com tipoSolicitacao vazio" \
+executar_teste "CENÁRIO 6: Criar cliente com tipo_solicitacao vazio" \
   "Tentar criar cliente com tipo de solicitação em branco" \
   "$PAYLOAD6" \
   "400"
@@ -149,10 +149,10 @@ executar_teste "CENÁRIO 6: Criar cliente com tipoSolicitacao vazio" \
 # Cenário 7: Criar cliente com nome muito curto
 UNIQUE_EMAIL7="joao.silva7.${TIMESTAMP}@example.com"
 PAYLOAD7="{
-  \"nome\": \"AB\",
-  \"email\": \"${UNIQUE_EMAIL7}\",
-  \"tipoSolicitacao\": \"Atualização cadastral\",
-  \"valorPatrimonio\": 250000
+  \"cliente_nome\": \"AB\",
+  \"cliente_email\": \"${UNIQUE_EMAIL7}\",
+  \"tipo_solicitacao\": \"Atualização cadastral\",
+  \"valor_patrimonio\": 250000
 }"
 executar_teste "CENÁRIO 7: Criar cliente com nome muito curto" \
   "Tentar criar cliente com nome com menos de 3 caracteres" \

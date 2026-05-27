@@ -89,7 +89,7 @@ func Load() *Config {
 			MaxNomeLength:            getIntEnv("BUSINESS_MAX_NOME_LENGTH", 255),
 			MaxEmailLength:           getIntEnv("BUSINESS_MAX_EMAIL_LENGTH", 255),
 			MaxTipoSolicitacaoLength: getIntEnv("BUSINESS_MAX_TIPO_SOLICITACAO_LENGTH", 50),
-			MinValorPatrimonio:       getFloatEnv("BUSINESS_MIN_VALOR_PATRIMONIO", 0.01),
+			MinValorPatrimonio:       getFloatEnv("BUSINESS_MIN_VALOR_PATRIMONIO", 0.00),
 			MaxValorPatrimonio:       getFloatEnv("BUSINESS_MAX_VALOR_PATRIMONIO", 999999999.99),
 		},
 		Pipefy: PipefyConfig{

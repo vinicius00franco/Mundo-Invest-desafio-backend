@@ -75,8 +75,8 @@ func (s *ClienteValidationStrategy) Validate(obj interface{}) error {
 	}
 
 	// Validar valorPatrimonio
-	if requisicao.ValorPatrimonio < s.config.Business.MinValorPatrimonio {
-		erros = append(erros, catalogo.Texto(mensagens.ValValorPatrimonioObrigatorio))
+	if requisicao.ValorPatrimonio < 0 {
+		erros = append(erros, catalogo.Texto(mensagens.ValValorPatrimonioNegativo))
 	} else if requisicao.ValorPatrimonio > s.config.Business.MaxValorPatrimonio {
 		erros = append(erros, catalogo.TextoFormatado(mensagens.ValorPatrimonioMaximo, s.config.Business.MaxValorPatrimonio))
 	}

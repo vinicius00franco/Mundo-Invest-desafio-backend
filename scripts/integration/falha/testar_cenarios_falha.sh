@@ -73,47 +73,47 @@ executar_teste() {
 # Cenário 1: Criar cliente sem campo cliente_nome
 UNIQUE_EMAIL="joao.silha.${TIMESTAMP}@example.com"
 PAYLOAD1="{
-  \"email\": \"${UNIQUE_EMAIL}\",
-  \"tipoSolicitacao\": \"Atualização cadastral\",
-  \"valorPatrimonio\": 250000
+  \"cliente_email\": \"${UNIQUE_EMAIL}\",
+  \"tipo_solicitacao\": \"Atualização cadastral\",
+  \"valor_patrimonio\": 250000
 }"
 executar_teste "CENÁRIO 1: Criar cliente sem campo cliente_nome" \
   "Tentar criar cliente sem fornecer o campo cliente_nome" \
   "$PAYLOAD1" \
   "400"
 
-# Cenário 2: Criar cliente sem campo tipoSolicitacao
+# Cenário 2: Criar cliente sem campo tipo_solicitacao
 UNIQUE_EMAIL2="joao.silva2.${TIMESTAMP}@example.com"
 PAYLOAD2="{
-  \"nome\": \"João Silva\",
-  \"email\": \"${UNIQUE_EMAIL2}\",
-  \"valorPatrimonio\": 250000
+  \"cliente_nome\": \"João Silva\",
+  \"cliente_email\": \"${UNIQUE_EMAIL2}\",
+  \"valor_patrimonio\": 250000
 }"
-executar_teste "CENÁRIO 2: Criar cliente sem campo tipoSolicitacao" \
-  "Tentar criar cliente sem fornecer o campo tipoSolicitacao" \
+executar_teste "CENÁRIO 2: Criar cliente sem campo tipo_solicitacao" \
+  "Tentar criar cliente sem fornecer o campo tipo_solicitacao" \
   "$PAYLOAD2" \
   "400"
 
-# Cenário 3: Criar cliente sem campo valorPatrimonio
+# Cenário 3: Criar cliente sem campo valor_patrimonio
 UNIQUE_EMAIL3="joao.silva3.${TIMESTAMP}@example.com"
 PAYLOAD3="{
-  \"nome\": \"João Silva\",
-  \"email\": \"${UNIQUE_EMAIL3}\",
-  \"tipoSolicitacao\": \"Atualização cadastral\"
+  \"cliente_nome\": \"João Silva\",
+  \"cliente_email\": \"${UNIQUE_EMAIL3}\",
+  \"tipo_solicitacao\": \"Atualização cadastral\"
 }"
-executar_teste "CENÁRIO 3: Criar cliente sem campo valorPatrimonio" \
-  "Tentar criar cliente sem fornecer o campo valorPatrimonio" \
+executar_teste "CENÁRIO 3: Criar cliente sem campo valor_patrimonio" \
+  "Tentar criar cliente sem fornecer o campo valor_patrimonio" \
   "$PAYLOAD3" \
   "400"
 
-# Cenário 4: Criar cliente sem campo email
+# Cenário 4: Criar cliente sem campo cliente_email
 PAYLOAD4='{
-  "nome": "João Silva",
-  "tipoSolicitacao": "Atualização cadastral",
-  "valorPatrimonio": 250000
+  "cliente_nome": "João Silva",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 250000
 }'
-executar_teste "CENÁRIO 4: Criar cliente sem campo email" \
-  "Tentar criar cliente sem fornecer o campo email" \
+executar_teste "CENÁRIO 4: Criar cliente sem campo cliente_email" \
+  "Tentar criar cliente sem fornecer o campo cliente_email" \
   "$PAYLOAD4" \
   "400"
 
@@ -122,10 +122,10 @@ executar_teste "CENÁRIO 4: Criar cliente sem campo email" \
 # Para testar, pare o container do PostgreSQL antes de executar este teste
 UNIQUE_EMAIL5="joao.silva5.${TIMESTAMP}@example.com"
 PAYLOAD5="{
-  \"nome\": \"João Silva\",
-  \"email\": \"${UNIQUE_EMAIL5}\",
-  \"tipoSolicitacao\": \"Atualização cadastral\",
-  \"valorPatrimonio\": 250000
+  \"cliente_nome\": \"João Silva\",
+  \"cliente_email\": \"${UNIQUE_EMAIL5}\",
+  \"tipo_solicitacao\": \"Atualização cadastral\",
+  \"valor_patrimonio\": 250000
 }"
 echo "=== CENÁRIO 5: Criar cliente com erro de banco de dados ===" >> "$OUTPUT_FILE"
 echo "Descrição: Tentar criar cliente quando banco de dados está indisponível" >> "$OUTPUT_FILE"

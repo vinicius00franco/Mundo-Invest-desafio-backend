@@ -28,10 +28,10 @@ echo "" >> "$OUTPUT_FILE"
 # Gerar email único para evitar conflitos
 UNIQUE_EMAIL="joao.silva.${TIMESTAMP}@example.com"
 PAYLOAD="{
-  \"nome\": \"João Silva\",
-  \"email\": \"${UNIQUE_EMAIL}\",
-  \"tipoSolicitacao\": \"Atualização cadastral\",
-  \"valorPatrimonio\": 250000
+  \"cliente_nome\": \"João Silva\",
+  \"cliente_email\": \"${UNIQUE_EMAIL}\",
+  \"tipo_solicitacao\": \"Atualização cadastral\",
+  \"valor_patrimonio\": 250000
 }"
 
 echo "Payload enviado:" >> "$OUTPUT_FILE"
@@ -68,16 +68,16 @@ else
 fi
 
 # Verificar se contém campos esperados
-if echo "$BODY" | jq -e '.identificadorInterno' > /dev/null 2>&1; then
-  echo "✓ Campo identificadorInterno presente - PASSOU" >> "$OUTPUT_FILE"
+if echo "$BODY" | jq -e '.identificador_interno' > /dev/null 2>&1; then
+  echo "✓ Campo identificador_interno presente - PASSOU" >> "$OUTPUT_FILE"
 else
-  echo "✗ Campo identificadorInterno ausente - FALHOU" >> "$OUTPUT_FILE"
+  echo "✗ Campo identificador_interno ausente - FALHOU" >> "$OUTPUT_FILE"
 fi
 
-if echo "$BODY" | jq -e '.identificadorExterno' > /dev/null 2>&1; then
-  echo "✓ Campo identificadorExterno (card_id) presente - PASSOU" >> "$OUTPUT_FILE"
+if echo "$BODY" | jq -e '.identificador_externo' > /dev/null 2>&1; then
+  echo "✓ Campo identificador_externo (card_id) presente - PASSOU" >> "$OUTPUT_FILE"
 else
-  echo "✗ Campo identificadorExterno ausente - FALHOU" >> "$OUTPUT_FILE"
+  echo "✗ Campo identificador_externo ausente - FALHOU" >> "$OUTPUT_FILE"
 fi
 
 if echo "$BODY" | jq -e '.status' > /dev/null 2>&1; then
