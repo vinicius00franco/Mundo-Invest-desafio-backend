@@ -2,10 +2,15 @@ package database
 
 import (
 	"testing"
+
+	"github.com/MundoInvest/backend/internal/shared/logger"
 )
 
 // TestNovaConexaoSucesso testa a criação de conexão com sucesso
 func TestNovaConexaoSucesso(t *testing.T) {
+	// Inicializar logger antes do teste
+	logger.Init()
+
 	// Este teste requer variáveis de ambiente configuradas
 	// Para executar: export DB_HOST=localhost DB_PORT=5434 DB_USER=postgres DB_PASSWORD=postgres DB_NAME=mundo_invest
 
@@ -49,6 +54,9 @@ func TestNovaConexaoFalha(t *testing.T) {
 
 // TestNovaConexaoVariaveisAmbiente testa conexão usando variáveis de ambiente
 func TestNovaConexaoVariaveisAmbiente(t *testing.T) {
+	// Inicializar logger
+	logger.Init()
+
 	// Configurar variáveis de ambiente para teste
 	// Em produção, estas variáveis viriam do ambiente
 	t.Setenv("DB_HOST", "localhost")

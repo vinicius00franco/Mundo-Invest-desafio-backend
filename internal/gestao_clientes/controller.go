@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/MundoInvest/backend/internal/dominio"
 	"github.com/MundoInvest/backend/internal/integracao_pipefy"
 )
 

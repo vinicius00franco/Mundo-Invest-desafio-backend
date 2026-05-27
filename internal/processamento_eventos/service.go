@@ -104,7 +104,7 @@ func (s *webhookService) ProcessarWebhook(ctx context.Context, request WebhookRe
 		TimestampEvento:     timestampEvento,
 		FoiProcessado:       true,
 		DataCriacao:         time.Now(),
-		DataAtualizacao:     time.Now(),
+		DataAtualizacao:     nil, // Field is nullable
 	}
 
 	if _, err := s.eventoRepository.Salvar(evento); err != nil {

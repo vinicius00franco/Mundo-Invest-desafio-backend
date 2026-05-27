@@ -2,6 +2,7 @@ package processamento_eventos
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -15,14 +16,14 @@ import (
 
 // MockWebhookService é um mock do WebhookService para testes
 type MockWebhookService struct {
-	processarWebhookFunc func(request WebhookRequest) error
+	processarWebhookFunc func(ctx context.Context, request WebhookRequest) error
 	erro                 error
 	clienteExistente     bool
 }
 
-func (m *MockWebhookService) ProcessarWebhook(request WebhookRequest) error {
+func (m *MockWebhookService) ProcessarWebhook(ctx context.Context, request WebhookRequest) error {
 	if m.processarWebhookFunc != nil {
-		return m.processarWebhookFunc(request)
+		return m.processarWebhookFunc(ctx, request)
 	}
 	if m.erro != nil {
 		return m.erro
@@ -153,7 +154,7 @@ func TestProcessarWebhookHandler_Idempotencia(t *testing.T) {
 func TestProcessarWebhookHandler_ClienteNaoEncontrado(t *testing.T) {
 	// Arrange
 	mockService := &MockWebhookService{
-		processarWebhookFunc: func(request WebhookRequest) error {
+		processarWebhookFunc: func(ctx context.Context, request WebhookRequest) error {
 			return fmt.Errorf("cliente não encontrado com email %s: %w", request.ClienteEmail, sql.ErrNoRows)
 		},
 	}

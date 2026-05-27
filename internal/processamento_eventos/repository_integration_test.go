@@ -34,7 +34,7 @@ func TestEventoRepositoryIntegracao_Salvar(t *testing.T) {
 		TimestampEvento:     time.Now(),
 		FoiProcessado:       true,
 		DataCriacao:         time.Now(),
-		DataAtualizacao:     time.Now(),
+		DataAtualizacao:     nil, // Field is nullable
 	}
 
 	salvo, err := repository.Salvar(evento)
@@ -78,7 +78,7 @@ func TestEventoRepositoryIntegracao_VerificarFoiProcessado(t *testing.T) {
 		TimestampEvento:     time.Now(),
 		FoiProcessado:       true,
 		DataCriacao:         time.Now(),
-		DataAtualizacao:     time.Now(),
+		DataAtualizacao:     nil, // Field is nullable
 	}
 
 	salvo, err := repository.Salvar(evento)
@@ -110,8 +110,11 @@ func TestEventoRepositoryIntegracao_BuscarPorIdentificadorCard(t *testing.T) {
 
 	repository := NovoEventoRepository(db)
 
-	// Criar eventos de teste
+	// Limpar eventos de teste anteriores
 	cardID := "card_test_789"
+	db.Exec("DELETE FROM processamento_eventos.evento WHERE pev_eve_idc = $1", cardID)
+
+	// Criar eventos de teste
 	for i := 0; i < 3; i++ {
 		evento := Evento{
 			IdentificadorEvento: fmt.Sprintf("evt_test_%d", i),
@@ -120,7 +123,7 @@ func TestEventoRepositoryIntegracao_BuscarPorIdentificadorCard(t *testing.T) {
 			TimestampEvento:     time.Now(),
 			FoiProcessado:       true,
 			DataCriacao:         time.Now(),
-			DataAtualizacao:     time.Now(),
+			DataAtualizacao:     nil, // Field is nullable
 		}
 
 		_, err := repository.Salvar(evento)
@@ -138,7 +141,4 @@ func TestEventoRepositoryIntegracao_BuscarPorIdentificadorCard(t *testing.T) {
 	if len(eventos) != 3 {
 		t.Errorf("Esperado 3 eventos, obtido %d", len(eventos))
 	}
-
-	// Limpar
-	db.Exec("DELETE FROM processamento_eventos.evento WHERE pev_eve_idc = $1", cardID)
 }

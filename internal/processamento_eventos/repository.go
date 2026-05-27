@@ -8,14 +8,14 @@ import (
 
 // Evento representa a entidade Evento do contexto de processamento de eventos
 type Evento struct {
-	IdentificadorInterno int64     // pev_eve_int
-	IdentificadorEvento  string    // pev_eve_ide
-	IdentificadorCard    string    // pev_eve_idc
-	EmailCliente         string    // pev_eve_ema
-	TimestampEvento      time.Time // pev_eve_tms
-	FoiProcessado        bool      // pev_eve_fpr
-	DataCriacao          time.Time // pev_eve_dcr
-	DataAtualizacao      time.Time // pev_eve_dat
+	IdentificadorInterno int64      // pev_eve_int
+	IdentificadorEvento  string     // pev_eve_ide
+	IdentificadorCard    string     // pev_eve_idc
+	EmailCliente         string     // pev_eve_ema
+	TimestampEvento      time.Time  // pev_eve_tms
+	FoiProcessado        bool       // pev_eve_fpr
+	DataCriacao          time.Time  // pev_eve_dcr
+	DataAtualizacao      *time.Time // pev_eve_dat (nullable)
 }
 
 // EventoRepository define a interface para operações de persistência de eventos
@@ -78,6 +78,7 @@ func (r *eventoRepository) BuscarPorIdentificadorEvento(identificadorEvento stri
 	`
 
 	var evento Evento
+	var dataAtualizacao sql.NullTime
 
 	err := r.banco.QueryRow(query, identificadorEvento).Scan(
 		&evento.IdentificadorInterno,
@@ -87,7 +88,7 @@ func (r *eventoRepository) BuscarPorIdentificadorEvento(identificadorEvento stri
 		&evento.TimestampEvento,
 		&evento.FoiProcessado,
 		&evento.DataCriacao,
-		&evento.DataAtualizacao,
+		&dataAtualizacao,
 	)
 
 	if err != nil {
@@ -95,6 +96,10 @@ func (r *eventoRepository) BuscarPorIdentificadorEvento(identificadorEvento stri
 			return nil, fmt.Errorf("evento não encontrado com identificador %s", identificadorEvento)
 		}
 		return nil, fmt.Errorf("erro ao buscar evento por identificador: %w", err)
+	}
+
+	if dataAtualizacao.Valid {
+		evento.DataAtualizacao = &dataAtualizacao.Time
 	}
 
 	return &evento, nil
@@ -143,6 +148,7 @@ func (r *eventoRepository) BuscarPorIdentificadorCard(identificadorCard string) 
 
 	for linhas.Next() {
 		var evento Evento
+		var dataAtualizacao sql.NullTime
 		err := linhas.Scan(
 			&evento.IdentificadorInterno,
 			&evento.IdentificadorEvento,
@@ -151,11 +157,16 @@ func (r *eventoRepository) BuscarPorIdentificadorCard(identificadorCard string) 
 			&evento.TimestampEvento,
 			&evento.FoiProcessado,
 			&evento.DataCriacao,
-			&evento.DataAtualizacao,
+			&dataAtualizacao,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("erro ao escanear evento: %w", err)
 		}
+
+		if dataAtualizacao.Valid {
+			evento.DataAtualizacao = &dataAtualizacao.Time
+		}
+
 		eventos = append(eventos, evento)
 	}
 

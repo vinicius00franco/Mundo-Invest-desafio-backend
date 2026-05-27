@@ -26,7 +26,8 @@ func ValidarEmail(email string) error {
 		return errors.New("email é obrigatório")
 	}
 
-	if !isValidEmail(email) {
+	strategy := NewClienteValidationStrategy()
+	if !strategy.isValidEmail(email) {
 		return errors.New("email inválido")
 	}
 
@@ -89,8 +90,11 @@ func ValidarCriarClienteRequestDetalhado(request CriarClienteRequest) []*ErroVal
 
 	if strings.TrimSpace(request.Email) == "" {
 		erros = append(erros, NewErroValidacao("email", "email é obrigatório"))
-	} else if !isValidEmail(request.Email) {
-		erros = append(erros, NewErroValidacao("email", "email inválido"))
+	} else {
+		strategy := NewClienteValidationStrategy()
+		if !strategy.isValidEmail(request.Email) {
+			erros = append(erros, NewErroValidacao("email", "email inválido"))
+		}
 	}
 
 	if strings.TrimSpace(request.TipoSolicitacao) == "" {

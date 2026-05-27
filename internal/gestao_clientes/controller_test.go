@@ -2,6 +2,7 @@ package gestao_clientes
 
 import (
 	"bytes"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"net/http"
@@ -11,13 +12,13 @@ import (
 
 // MockClienteService é um mock do ClienteService para testes
 type MockClienteService struct {
-	criarClienteFunc func(request CriarClienteRequest) (*Cliente, error)
+	criarClienteFunc func(ctx context.Context, request CriarClienteRequest) (*Cliente, error)
 	erro             error
 }
 
-func (m *MockClienteService) CriarCliente(request CriarClienteRequest) (*Cliente, error) {
+func (m *MockClienteService) CriarCliente(ctx context.Context, request CriarClienteRequest) (*Cliente, error) {
 	if m.criarClienteFunc != nil {
-		return m.criarClienteFunc(request)
+		return m.criarClienteFunc(ctx, request)
 	}
 	if m.erro != nil {
 		return nil, m.erro
