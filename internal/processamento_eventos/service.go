@@ -68,7 +68,7 @@ func (s *webhookService) ProcessarWebhook(ctx context.Context, requisicao Requis
 	// Buscar cliente por email
 	cliente, err := s.clienteRepository.BuscarPorEmail(ctx, requisicao.EmailCliente)
 	if err != nil {
-		return errors.NewServiceError("WebhookService", catalogo.Texto(mensagens.ErrClienteNaoEncontrado), err)
+		return err
 	}
 
 	// Calcular nível de prioridade baseado no patrimônio
