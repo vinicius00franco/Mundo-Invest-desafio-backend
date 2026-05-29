@@ -1,0 +1,136 @@
+### Mundo Invest - Cenários de Sucesso
+### Requisições com dados sintéticos reais e válidos
+
+@baseUrl = http://localhost:8080
+@contentType = application/json
+
+###############################################################################
+### CRIAÇÃO DE CLIENTES - Cenários de Sucesso
+###############################################################################
+
+### 1. Criar cliente com patrimônio alto (>= 200.000 - prioridade alta)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "João Silva",
+  "cliente_email": "joao.silva@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 250000
+}
+
+### 2. Criar cliente com patrimônio baixo (< 200.000 - prioridade normal)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Maria Santos",
+  "cliente_email": "maria.santos@example.com",
+  "tipo_solicitacao": "Abertura de conta",
+  "valor_patrimonio": 150000
+}
+
+### 3. Criar cliente com patrimônio no limite (= 200.000 - prioridade alta)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Pedro Oliveira",
+  "cliente_email": "pedro.oliveira@example.com",
+  "tipo_solicitacao": "Resgate",
+  "valor_patrimonio": 200000
+}
+
+### 4. Criar cliente com patrimônio muito alto (VIP)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Carlos Ferreira",
+  "cliente_email": "carlos.ferreira@example.com",
+  "tipo_solicitacao": "Abertura de conta",
+  "valor_patrimonio": 1500000
+}
+
+### 5. Criar cliente com patrimônio moderado
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Ana Costa",
+  "cliente_email": "ana.costa@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 175000
+}
+
+###############################################################################
+### PROCESSAMENTO DE WEBHOOKS - Cenários de Sucesso
+###############################################################################
+
+### 6. Processar webhook para cliente com patrimônio alto (prioridade alta)
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_123",
+  "card_id": "card_456",
+  "cliente_email": "joao.silva@example.com",
+  "timestamp": "2026-05-27T12:00:00Z"
+}
+
+### 7. Processar webhook para cliente com patrimônio baixo (prioridade normal)
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_456",
+  "card_id": "card_789",
+  "cliente_email": "maria.santos@example.com",
+  "timestamp": "2026-05-27T13:00:00Z"
+}
+
+### 8. Processar webhook para cliente com patrimônio no limite (prioridade alta)
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_789",
+  "card_id": "card_101",
+  "cliente_email": "pedro.oliveira@example.com",
+  "timestamp": "2026-05-27T14:00:00Z"
+}
+
+### 9. Processar webhook para cliente VIP
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_999",
+  "card_id": "card_999",
+  "cliente_email": "carlos.ferreira@example.com",
+  "timestamp": "2026-05-27T15:00:00Z"
+}
+
+### 10. Processar webhook para cliente com patrimônio moderado
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_888",
+  "card_id": "card_888",
+  "cliente_email": "ana.costa@example.com",
+  "timestamp": "2026-05-27T16:00:00Z"
+}
+
+###############################################################################
+### INSTRUÇÕES DE USO
+###############################################################################
+# 
+# Este arquivo contém apenas cenários de sucesso com dados válidos.
+# Use para testar o fluxo normal da aplicação.
+#
+# Execute as requisições em ordem sequencial para simular um fluxo real:
+# 1. Criar clientes (requisições 1-5)
+# 2. Processar webhooks correspondentes (requisições 6-10)
+#
+###############################################################################

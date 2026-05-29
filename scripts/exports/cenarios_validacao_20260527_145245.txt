@@ -1,0 +1,163 @@
+========================================
+TESTES DE CENÁRIOS DE VALIDAÇÃO
+Data: qua 27 mai 2026 14:52:45 -03
+========================================
+
+=== CENÁRIO 1: Criar cliente com e-mail inválido ===
+Descrição: Tentar criar cliente com e-mail em formato inválido
+
+Payload enviado:
+{
+  "nome": "João Silva",
+  "email": "email-invalido",
+  "tipoSolicitacao": "Atualização cadastral",
+  "valorPatrimonio": 250000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 400
+Resposta JSON:
+{
+  "erro": "erro de validação: email inválido"
+}
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 2: Criar cliente com patrimônio negativo ===
+Descrição: Tentar criar cliente com valor de patrimônio negativo
+
+Payload enviado:
+{
+  "nome": "João Silva",
+  "email": "joao.silva2.20260527_145245@example.com",
+  "tipoSolicitacao": "Atualização cadastral",
+  "valorPatrimonio": -1000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 400
+Resposta JSON:
+{
+  "erro": "erro de validação: valorPatrimonio deve ser maior ou igual a 0.01"
+}
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 3: Criar cliente com patrimônio zero ===
+Descrição: Tentar criar cliente com valor de patrimônio igual a zero
+
+Payload enviado:
+{
+  "nome": "João Silva",
+  "email": "joao.silva3.20260527_145245@example.com",
+  "tipoSolicitacao": "Atualização cadastral",
+  "valorPatrimonio": 0
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 400
+Resposta JSON:
+{
+  "erro": "erro de validação: valorPatrimonio deve ser maior ou igual a 0.01"
+}
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 4: Criar cliente com nome vazio ===
+Descrição: Tentar criar cliente com nome em branco
+
+Payload enviado:
+{
+  "nome": "",
+  "email": "joao.silva4.20260527_145245@example.com",
+  "tipoSolicitacao": "Atualização cadastral",
+  "valorPatrimonio": 250000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 400
+Resposta JSON:
+{
+  "erro": "erro de validação: nome é obrigatório"
+}
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 5: Criar cliente com e-mail vazio ===
+Descrição: Tentar criar cliente com e-mail em branco
+
+Payload enviado:
+{
+  "nome": "João Silva",
+  "email": "",
+  "tipoSolicitacao": "Atualização cadastral",
+  "valorPatrimonio": 250000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 400
+Resposta JSON:
+{
+  "erro": "erro de validação: email é obrigatório"
+}
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 6: Criar cliente com tipoSolicitacao vazio ===
+Descrição: Tentar criar cliente com tipo de solicitação em branco
+
+Payload enviado:
+{
+  "nome": "João Silva",
+  "email": "joao.silva6.20260527_145245@example.com",
+  "tipoSolicitacao": "",
+  "valorPatrimonio": 250000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 400
+Resposta JSON:
+{
+  "erro": "erro de validação: tipoSolicitacao é obrigatório"
+}
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 7: Criar cliente com nome muito curto ===
+Descrição: Tentar criar cliente com nome com menos de 3 caracteres
+
+Payload enviado:
+{
+  "nome": "AB",
+  "email": "joao.silva7.20260527_145245@example.com",
+  "tipoSolicitacao": "Atualização cadastral",
+  "valorPatrimonio": 250000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 400
+Resposta JSON:
+{
+  "erro": "erro de validação: nome deve ter pelo menos 3 caracteres"
+}
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+========================================
+FIM DOS TESTES DE VALIDAÇÃO
+Resultado salvo em: /home/vinicius/.windsurf/worktrees/MundoInvest/MundoInvest-dcd16b68/scripts/integration/validacao/../../exports/cenarios_validacao_20260527_145245.txt
+========================================

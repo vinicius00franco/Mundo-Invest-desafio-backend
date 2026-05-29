@@ -1,0 +1,117 @@
+========================================
+TESTES DE CENÁRIOS DE FALHA
+Data: qua 27 mai 2026 17:13:15 -03
+========================================
+
+=== CENÁRIO 1: Criar cliente sem campo cliente_nome ===
+Descrição: Tentar criar cliente sem fornecer o campo cliente_nome
+
+Payload enviado:
+{
+  "cliente_email": "joao.silha.20260527_171315@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 250000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 400
+Resposta JSON:
+{
+  "erro": "erro de validação: cliente_nome é obrigatório"
+}
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 2: Criar cliente sem campo tipo_solicitacao ===
+Descrição: Tentar criar cliente sem fornecer o campo tipo_solicitacao
+
+Payload enviado:
+{
+  "cliente_nome": "João Silva",
+  "cliente_email": "joao.silva2.20260527_171315@example.com",
+  "valor_patrimonio": 250000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 400
+Resposta JSON:
+{
+  "erro": "erro de validação: tipo_solicitacao é obrigatório"
+}
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 3: Criar cliente sem campo valor_patrimonio ===
+Descrição: Tentar criar cliente sem fornecer o campo valor_patrimonio
+
+Payload enviado:
+{
+  "cliente_nome": "João Silva",
+  "cliente_email": "joao.silva3.20260527_171315@example.com",
+  "tipo_solicitacao": "Atualização cadastral"
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 500
+Resposta JSON:
+{
+  "erro": "erro no serviço 'ClienteService': erro ao salvar cliente: erro no repositório durante operação 'salvar cliente': pq: duplicate key value violates unique constraint \"uk_gcl_cli_ext\" (23505)"
+}
+
+Verificações:
+✗ HTTP 500 - FALHOU (esperado 400)
+
+=== CENÁRIO 4: Criar cliente sem campo cliente_email ===
+Descrição: Tentar criar cliente sem fornecer o campo cliente_email
+
+Payload enviado:
+{
+  "cliente_nome": "João Silva",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 250000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 400
+Resposta JSON:
+{
+  "erro": "erro de validação: cliente_email é obrigatório"
+}
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 5: Criar cliente com erro de banco de dados ===
+Descrição: Tentar criar cliente quando banco de dados está indisponível
+Nota: Este cenário requer que o banco de dados esteja parado
+Para testar: docker-compose stop postgres
+
+Payload enviado:
+{
+  "cliente_nome": "João Silva",
+  "cliente_email": "joao.silva5.20260527_171315@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 250000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 500
+Resposta JSON:
+{
+  "erro": "erro no serviço 'ClienteService': erro ao salvar cliente: erro no repositório durante operação 'salvar cliente': pq: duplicate key value violates unique constraint \"uk_gcl_cli_ext\" (23505)"
+}
+
+Verificações:
+✓ HTTP 500 Internal Server Error - PASSOU
+
+========================================
+FIM DOS TESTES DE FALHA
+Resultado salvo em: /home/vinicius/.windsurf/worktrees/MundoInvest/MundoInvest-dcd16b68/scripts/integration/falha/../../exports/cenarios_falha_20260527_171315.txt
+========================================

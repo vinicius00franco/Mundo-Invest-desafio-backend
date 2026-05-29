@@ -1,0 +1,205 @@
+### Mundo Invest - API Test Collection
+### Sequência de endpoints para testar a API
+
+@baseUrl = http://localhost:8080
+@contentType = application/json
+
+###############################################################################
+### FLUXO 1: Criação de Cliente
+###############################################################################
+
+### 1. Criar cliente com patrimônio alto (>= 200.000 - prioridade alta)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "João Silva",
+  "cliente_email": "joao.silva@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 250000
+}
+
+### 2. Criar cliente com patrimônio baixo (< 200.000 - prioridade normal)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Maria Santos",
+  "cliente_email": "maria.santos@example.com",
+  "tipo_solicitacao": "Abertura de conta",
+  "valor_patrimonio": 150000
+}
+
+### 3. Criar cliente com patrimônio no limite (= 200.000 - prioridade alta)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Pedro Oliveira",
+  "cliente_email": "pedro.oliveira@example.com",
+  "tipo_solicitacao": "Resgate",
+  "valor_patrimonio": 200000
+}
+
+### 4. Criar cliente com dados inválidos (email inválido)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Carlos Lima",
+  "cliente_email": "email-invalido",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 100000
+}
+
+### 5. Criar cliente com dados inválidos (campos obrigatórios faltando)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Ana Costa",
+  "tipo_solicitacao": "Abertura de conta"
+}
+
+###############################################################################
+### FLUXO 2: Processamento de Webhook
+###############################################################################
+
+### 6. Processar webhook para cliente com patrimônio alto (prioridade alta)
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_123",
+  "card_id": "card_456",
+  "cliente_email": "joao.silva@example.com",
+  "timestamp": "2026-05-27T12:00:00Z"
+}
+
+### 7. Processar webhook para cliente com patrimônio baixo (prioridade normal)
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_456",
+  "card_id": "card_789",
+  "cliente_email": "maria.santos@example.com",
+  "timestamp": "2026-05-27T13:00:00Z"
+}
+
+### 8. Processar webhook para cliente com patrimônio no limite (prioridade alta)
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_789",
+  "card_id": "card_101",
+  "cliente_email": "pedro.oliveira@example.com",
+  "timestamp": "2026-05-27T14:00:00Z"
+}
+
+### 9. Processar webhook duplicado (idempotência - mesmo event_id do teste 6)
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_123",
+  "card_id": "card_456",
+  "cliente_email": "joao.silva@example.com",
+  "timestamp": "2026-05-27T12:00:00Z"
+}
+
+### 10. Processar webhook com cliente não encontrado
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_999",
+  "card_id": "card_999",
+  "cliente_email": "nao.existe@example.com",
+  "timestamp": "2026-05-27T15:00:00Z"
+}
+
+### 11. Processar webhook com dados inválidos (event_id vazio)
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "",
+  "card_id": "card_111",
+  "cliente_email": "joao.silva@example.com",
+  "timestamp": "2026-05-27T16:00:00Z"
+}
+
+### 12. Processar webhook com dados inválidos (timestamp inválido)
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_111",
+  "card_id": "card_111",
+  "cliente_email": "joao.silva@example.com",
+  "timestamp": "timestamp-invalido"
+}
+
+###############################################################################
+### FLUXO 3: Cenários Adicionais
+###############################################################################
+
+### 13. Criar cliente com nome curto (validação de comprimento mínimo)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "AB",
+  "cliente_email": "ab@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 50000
+}
+
+### 14. Criar cliente com patrimônio negativo (validação)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Teste Negativo",
+  "cliente_email": "teste.negativo@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": -1000
+}
+
+### 15. Criar cliente com patrimônio zero (validação)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Teste Zero",
+  "cliente_email": "teste.zero@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 0
+}
+
+###############################################################################
+### INSTRUÇÕES DE USO
+###############################################################################
+# 
+# Este arquivo pode ser usado com:
+# - VS Code (extensão REST Client)
+# - IntelliJ IDEA (built-in HTTP Client)
+# - Bruno (cliente HTTP open source)
+# - Insomnia (importar como coleção)
+#
+# Para usar no VS Code:
+# 1. Instale a extensão "REST Client" de Huachao Mao
+# 2. Abra este arquivo
+# 3. Clique em "Send Request" acima de cada requisição
+#
+# Para usar no terminal com curl:
+# Copie cada requisição e execute no terminal, substituindo {{baseUrl}} por http://localhost:8080
+#
+# Exemplo:
+# curl -X POST http://localhost:8080/clientes \
+#   -H "Content-Type: application/json" \
+#   -d '{"cliente_nome": "João Silva", "cliente_email": "joao.silva@example.com", "tipo_solicitacao": "Atualização cadastral", "valor_patrimonio": 250000}'
+#
+###############################################################################
