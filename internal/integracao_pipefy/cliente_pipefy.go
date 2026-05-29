@@ -100,26 +100,6 @@ func (c *pipefyGraphQLClient) EstruturarMutationUpdateCard(cardID string, fields
 func (c *pipefyGraphQLClient) ExecutarMutation(mutation string) (string, error) {
 	// Simulação de execução da mutation
 	// Em produção, aqui seria feita a requisição HTTP para a API do Pipefy
-	// Exemplo de implementação real:
-	//
-	// client := &http.Client{}
-	// request, err := http.NewRequest("POST", c.apiURL, bytes.NewBufferString(mutation))
-	// if err != nil {
-	//     return "", err
-	// }
-	// request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.apiToken))
-	// request.Header.Set("Content-Type", "application/json")
-	// response, err := client.Do(request)
-	// if err != nil {
-	//     return "", err
-	// }
-	// defer response.Body.Close()
-	// body, err := ioutil.ReadAll(response.Body)
-	// if err != nil {
-	//     return "", err
-	// }
-	// return string(body), nil
-
 	// Simular retorno de card ID curto para testes
 	return fmt.Sprintf("card_%d", time.Now().Unix()), nil
 }

@@ -1,0 +1,229 @@
+### Mundo Invest - Cenários de Falhas
+### Requisições para testar tratamento de erros e casos excepcionais
+
+@baseUrl = http://localhost:8080
+@contentType = application/json
+
+###############################################################################
+### FALHAS - Processamento de Webhooks
+###############################################################################
+
+### 1. Processar webhook duplicado (idempotência - mesmo event_id)
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_123",
+  "card_id": "card_456",
+  "cliente_email": "joao.silva@example.com",
+  "timestamp": "2026-05-27T12:00:00Z"
+}
+
+### 2. Processar webhook com cliente não encontrado
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_999",
+  "card_id": "card_999",
+  "cliente_email": "nao.existe@example.com",
+  "timestamp": "2026-05-27T15:00:00Z"
+}
+
+### 3. Processar webhook com cliente não encontrado (email inexistente)
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_1000",
+  "card_id": "card_1000",
+  "cliente_email": "cliente.inexistente@dominio-fake.com",
+  "timestamp": "2026-05-27T17:00:00Z"
+}
+
+###############################################################################
+### FALHAS - Erros de Serviço Externo
+###############################################################################
+
+### 4. Processar webhook quando serviço Pipefy está indisponível
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_2000",
+  "card_id": "card_2000",
+  "cliente_email": "joao.silva@example.com",
+  "timestamp": "2026-05-27T18:00:00Z"
+}
+
+### 5. Processar webhook com card_id inválido (não existe no Pipefy)
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_2001",
+  "card_id": "card_invalido_999999",
+  "cliente_email": "maria.santos@example.com",
+  "timestamp": "2026-05-27T19:00:00Z"
+}
+
+###############################################################################
+### FALHAS - Concorrência e Race Conditions
+###############################################################################
+
+### 6. Processar webhook simultâneo para mesmo cliente (simular concorrência)
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_3000",
+  "card_id": "card_3000",
+  "cliente_email": "joao.silva@example.com",
+  "timestamp": "2026-05-27T20:00:00Z"
+}
+
+### 7. Processar webhook com timestamp futuro (data inválida)
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_3001",
+  "card_id": "card_3001",
+  "cliente_email": "maria.santos@example.com",
+  "timestamp": "2099-12-31T23:59:59Z"
+}
+
+### 8. Processar webhook com timestamp muito antigo (data passada)
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_3002",
+  "card_id": "card_3002",
+  "cliente_email": "pedro.oliveira@example.com",
+  "timestamp": "2020-01-01T00:00:00Z"
+}
+
+###############################################################################
+### FALHAS - Erros de Sistema
+###############################################################################
+
+### 9. Processar webhook com payload JSON malformado (adicione caractere inválido no final)
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_4000",
+  "card_id": "card_4000",
+  "cliente_email": "joao.silva@example.com",
+  "timestamp": "2026-05-27T21:00:00Z"
+}
+
+### 10. Processar webhook com campos extras não esperados
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_4001",
+  "card_id": "card_4001",
+  "cliente_email": "maria.santos@example.com",
+  "timestamp": "2026-05-27T22:00:00Z",
+  "campo_extra": "valor_nao_esperado",
+  "outro_campo": 12345
+}
+
+### 11. Processar webhook com tipos de dados incorretos
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": 123456,
+  "card_id": 789012,
+  "cliente_email": "joao.silva@example.com",
+  "timestamp": "2026-05-27T23:00:00Z"
+}
+
+###############################################################################
+### FALHAS - Criação de Clientes
+###############################################################################
+
+### 12. Criar cliente com email duplicado (deve falhar se já existe)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "João Silva",
+  "cliente_email": "joao.silva@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 250000
+}
+
+### 13. Criar cliente com tipo_solicitacao inválido
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Teste Tipo Invalido",
+  "cliente_email": "teste.tipo.invalido@example.com",
+  "tipo_solicitacao": "Tipo que não existe",
+  "valor_patrimonio": 100000
+}
+
+### 14. Criar cliente com caracteres especiais no nome
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Teste <script>alert('xss')</script>",
+  "cliente_email": "teste.xss@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 100000
+}
+
+### 15. Criar cliente com nome muito longo (overflow)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Nome Muito Longo Que Excede O Limite Permitido Pelo Sistema E Deve Causar Um Erro De Validacao Por Exceder O Tamanho Maximo Do Campo",
+  "cliente_email": "teste.longo@example.com",
+  "tipo_solicitacao": "Abertura de conta",
+  "valor_patrimonio": 100000
+}
+
+###############################################################################
+### FALHAS - Endpoints Inexistentes
+###############################################################################
+
+### 16. Acessar endpoint inexistente
+GET {{baseUrl}}/endpoint-inexistente
+
+### 17. Acessar endpoint com método HTTP incorreto
+GET {{baseUrl}}/clientes
+
+### 18. Acessar endpoint com método HTTP incorreto
+PUT {{baseUrl}}/webhooks/pipefy/card-updated
+
+###############################################################################
+### INSTRUÇÕES DE USO
+###############################################################################
+# 
+# Este arquivo contém cenários de falhas para testar:
+# - Idempotência (webhooks duplicados)
+# - Clientes não encontrados
+# - Erros de serviços externos (Pipefy)
+# - Concorrência e race conditions
+# - Timestamps inválidos (futuro, passado)
+# - Payloads malformados
+# - Campos extras não esperados
+# - Tipos de dados incorretos
+# - Emails duplicados
+# - Tipos de solicitação inválidos
+# - Caracteres especiais (XSS)
+# - Overflow de campos
+# - Endpoints inexistentes
+# - Métodos HTTP incorretos
+#
+# Todas as requisições devem retornar erro (4xx ou 5xx)
+#
+###############################################################################

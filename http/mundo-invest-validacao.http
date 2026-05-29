@@ -1,0 +1,247 @@
+### Mundo Invest - Cenários de Validação
+### Requisições para testar validação de campos e regras de negócio
+
+@baseUrl = http://localhost:8080
+@contentType = application/json
+
+###############################################################################
+### VALIDAÇÃO DE CAMPOS - Criação de Clientes
+###############################################################################
+
+### 1. Criar cliente com email inválido (sem @)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Carlos Lima",
+  "cliente_email": "email-invalido",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 100000
+}
+
+### 2. Criar cliente com email inválido (sem domínio)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Teste Email",
+  "cliente_email": "teste@",
+  "tipo_solicitacao": "Abertura de conta",
+  "valor_patrimonio": 50000
+}
+
+### 3. Criar cliente com campos obrigatórios faltando (sem email)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Ana Costa",
+  "tipo_solicitacao": "Abertura de conta",
+  "valor_patrimonio": 100000
+}
+
+### 4. Criar cliente com campos obrigatórios faltando (sem nome)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_email": "teste@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 100000
+}
+
+### 5. Criar cliente com campos obrigatórios faltando (sem tipo_solicitacao)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Teste Solicitacao",
+  "cliente_email": "teste.solicitacao@example.com",
+  "valor_patrimonio": 100000
+}
+
+### 6. Criar cliente com campos obrigatórios faltando (sem valor_patrimonio)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Teste Patrimonio",
+  "cliente_email": "teste.patrimonio@example.com",
+  "tipo_solicitacao": "Abertura de conta"
+}
+
+### 7. Criar cliente com nome curto (validação de comprimento mínimo)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "AB",
+  "cliente_email": "ab@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 50000
+}
+
+### 8. Criar cliente com nome vazio
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "",
+  "cliente_email": "teste@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 100000
+}
+
+### 9. Criar cliente com email vazio
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Teste Email Vazio",
+  "cliente_email": "",
+  "tipo_solicitacao": "Abertura de conta",
+  "valor_patrimonio": 100000
+}
+
+### 10. Criar cliente com tipo_solicitacao vazio
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Teste Tipo Vazio",
+  "cliente_email": "teste.tipo@example.com",
+  "tipo_solicitacao": "",
+  "valor_patrimonio": 100000
+}
+
+###############################################################################
+### VALIDAÇÃO DE VALORES - Criação de Clientes
+###############################################################################
+
+### 11. Criar cliente com patrimônio negativo
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Teste Negativo",
+  "cliente_email": "teste.negativo@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": -1000
+}
+
+### 12. Criar cliente com patrimônio zero
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Teste Zero",
+  "cliente_email": "teste.zero@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 0
+}
+
+### 13. Criar cliente com patrimônio muito baixo (perto de zero)
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Teste Baixo",
+  "cliente_email": "teste.baixo@example.com",
+  "tipo_solicitacao": "Abertura de conta",
+  "valor_patrimonio": 1
+}
+
+### 14. Criar cliente com patrimônio decimal
+POST {{baseUrl}}/clientes
+Content-Type: {{contentType}}
+
+{
+  "cliente_nome": "Teste Decimal",
+  "cliente_email": "teste.decimal@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 150000.50
+}
+
+###############################################################################
+### VALIDAÇÃO DE CAMPOS - Webhooks
+###############################################################################
+
+### 15. Processar webhook com event_id vazio
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "",
+  "card_id": "card_111",
+  "cliente_email": "joao.silva@example.com",
+  "timestamp": "2026-05-27T16:00:00Z"
+}
+
+### 16. Processar webhook com card_id vazio
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_111",
+  "card_id": "",
+  "cliente_email": "joao.silva@example.com",
+  "timestamp": "2026-05-27T16:00:00Z"
+}
+
+### 17. Processar webhook com cliente_email vazio
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_111",
+  "card_id": "card_111",
+  "cliente_email": "",
+  "timestamp": "2026-05-27T16:00:00Z"
+}
+
+### 18. Processar webhook com timestamp vazio
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_111",
+  "card_id": "card_111",
+  "cliente_email": "joao.silva@example.com",
+  "timestamp": ""
+}
+
+### 19. Processar webhook com timestamp inválido (formato incorreto)
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_111",
+  "card_id": "card_111",
+  "cliente_email": "joao.silva@example.com",
+  "timestamp": "timestamp-invalido"
+}
+
+### 20. Processar webhook com timestamp inválido (data impossível)
+POST {{baseUrl}}/webhooks/pipefy/card-updated
+Content-Type: {{contentType}}
+
+{
+  "event_id": "evt_111",
+  "card_id": "card_111",
+  "cliente_email": "joao.silva@example.com",
+  "timestamp": "2026-13-45T25:61:61Z"
+}
+
+###############################################################################
+### INSTRUÇÕES DE USO
+###############################################################################
+# 
+# Este arquivo contém cenários de validação para testar:
+# - Validação de campos obrigatórios
+# - Validação de formatos (email, timestamp)
+# - Validação de valores (patrimônio negativo, zero, etc.)
+# - Validação de comprimento de campos
+#
+# Todas as requisições devem retornar erro de validação (4xx)
+#
+###############################################################################
