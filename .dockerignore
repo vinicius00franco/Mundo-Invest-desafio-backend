@@ -1,0 +1,10 @@
+.git
+.cursor
+planos
+docs
+scripts
+bdd
+*.md
+.env
+.env.*
+!/.env.example

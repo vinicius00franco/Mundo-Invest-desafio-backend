@@ -6,6 +6,92 @@ Sistema de gestão de clientes com integração ao Pipefy, processamento de webh
 
 O Mundo Invest é um sistema backend desenvolvido em Go que gerencia o cadastro de clientes e processa eventos do Pipefy de forma idempotente. O sistema calcula automaticamente o nível de prioridade dos clientes baseado no valor do patrimônio e atualiza os cards no Pipefy através de mutations GraphQL.
 
+## Visão simplificada
+
+O backend atende dois momentos do fluxo de negócio:
+
+1. **Cadastro do cliente** — recebe uma solicitação (`POST /clientes`), valida os dados, persiste o cliente com status *Aguardando Análise* e cria o card correspondente no Pipefy.
+2. **Atualização via Pipefy** — quando o card muda no Pipefy, um webhook (`POST /webhooks/pipefy/card-updated`) dispara o recálculo de prioridade pelo patrimônio, atualiza o cliente para *Processado* e registra o evento de forma idempotente.
+
+A organização do código segue **contextos delimitados (DDD)** em `internal/`, com linguagem ubíqua em português. Detalhes operacionais (Docker, testes, endpoints) continuam nas seções abaixo.
+
+## Storytelling DDD e fluxo das rotas
+
+O diagrama abaixo conta a história do negócio em um único fluxo: atores externos, contextos delimitados, domínio compartilhado, integração anticorrupção com o Pipefy e o caminho HTTP de cada rota dentro do respectivo contexto.
+
+```mermaid
+flowchart TB
+    Operador(["Operador / consumidor da API"])
+    Pipefy(["Pipefy"])
+
+  subgraph BC_GCL["Contexto: Gestão de Clientes — schema gestao_clientes"]
+        direction TB
+        R1["POST /clientes"]
+        H1["ClienteController.CriarClienteHandler"]
+        S1["ClienteService.CriarCliente"]
+        V1["ValidarRequisicaoCriarCliente"]
+        E1["Entidade Cliente"]
+        DB1[("ClienteRepository → tabela cliente")]
+        R1 --> H1 --> V1 --> S1
+        S1 --> E1
+        S1 --> DB1
+        S1 -->|"Status inicial: Aguardando Análise"| E1
+    end
+
+    subgraph BC_PEV["Contexto: Processamento de Eventos — schema processamento_eventos"]
+        direction TB
+        R2["POST /webhooks/pipefy/card-updated"]
+        H2["EventoController.ProcessarWebhookHandler"]
+        S2["WebhookService.ProcessarWebhook"]
+        V2["ValidarRequisicaoWebhook"]
+        E2["Entidade Evento"]
+        DB2[("EventoRepository → tabela evento")]
+        R2 --> H2 --> V2 --> S2
+        S2 -->|"1. Verificar event_id — idempotência"| DB2
+        S2 -->|"2. Buscar Cliente por email"| DB1
+        S2 -->|"3. Calcular prioridade pelo patrimônio"| CALC
+        S2 -->|"4. Atualizar status Processado + prioridade"| DB1
+        S2 -->|"5. Persistir evento processado"| E2
+        E2 --> DB2
+    end
+
+    subgraph KERNEL["Domínio compartilhado — internal/dominio"]
+        CALC["CalculadoraPrioridade"]
+        CALC -->|"patrimônio ≥ 200.000"| ALTA["prioridade_alta"]
+        CALC -->|"patrimônio < 200.000"| NORM["prioridade_normal"]
+    end
+
+    subgraph ACL["Integração Pipefy — anticorrupção GraphQL"]
+        P_CREATE["CriarCardCliente — mutation createCard"]
+        P_UPDATE["EstruturarMutationUpdateCard — mutation updateCard"]
+    end
+
+    Operador -->|"Solicita abertura / cadastro"| R1
+    Pipefy -->|"Notifica alteração do card"| R2
+
+    S1 --> P_CREATE
+    P_CREATE --> Pipefy
+    S2 --> P_UPDATE
+    P_UPDATE -.->|"simulado em dev"| Pipefy
+
+    style R1 fill:#e3f2fd,stroke:#1565c0
+    style R2 fill:#e3f2fd,stroke:#1565c0
+    style BC_GCL fill:#f1f8e9,stroke:#558b2f
+    style BC_PEV fill:#fff8e1,stroke:#f9a825
+    style KERNEL fill:#fce4ec,stroke:#c2185b
+    style ACL fill:#ede7f6,stroke:#512da8
+```
+
+**Narrativa em sequência**
+
+| Passo | Rota | O que o negócio entende |
+|-------|------|-------------------------|
+| 1 | `POST /clientes` | Nova **Solicitação** de cliente: nome, e-mail, tipo e **Patrimônio** entram no contexto de **Gestão de Clientes**. |
+| 2 | (interno) | Cliente fica **Aguardando Análise**; um **Card** é criado no Pipefy e o identificador externo é gravado. |
+| 3 | `POST /webhooks/pipefy/card-updated` | Pipefy envia um **Evento** ao contexto de **Processamento de Eventos**. |
+| 4 | (interno) | Se o `event_id` já existir, nada é reprocessado (idempotência). Caso contrário, o cliente é localizado pelo e-mail. |
+| 5 | (interno) | A **CalculadoraPrioridade** classifica o atendimento; o cliente passa a **Processado** e o card recebe a prioridade (mutation simulada ou real conforme ambiente). |
+
 ## 🚀 Tecnologias Utilizadas
 
 - **Go 1.21+**: Linguagem de programação principal
@@ -76,12 +162,18 @@ cd MundoInvest
 go mod download
 ```
 
-3. **Configure o banco de dados**:
+3. **Configure variáveis de ambiente**:
 ```bash
-docker-compose up -d
+cp .env.example .env
+# Edite .env se necessário (Pipefy, etc.)
 ```
 
-4. **Execute as migrations** (se necessário):
+4. **Configure o banco de dados**:
+```bash
+docker compose up -d
+```
+
+5. **Execute as migrations** (se necessário):
 ```bash
 docker exec postgres_container psql -U postgres -d mundo_invest -f migrations_simple/001_criar_schemas.sql
 docker exec postgres_container psql -U postgres -d mundo_invest -f migrations_simple/002_criar_sequencias.sql
@@ -89,16 +181,29 @@ docker exec postgres_container psql -U postgres -d mundo_invest -f migrations_si
 docker exec postgres_container psql -U postgres -d mundo_invest -f migrations_simple/004_criar_tabela_evento.sql
 ```
 
-## 🎯 Execução Local
+## 🎯 Execução
 
-### Iniciar o Servidor
+### Subir API e banco com Docker (recomendado)
 
 ```bash
-# Usando variáveis de ambiente padrão
-DB_PORT=5434 go run cmd/server/main.go
+cp .env.example .env   # se ainda não existir
+docker compose up -d --build
+```
 
-# Ou com variáveis de ambiente personalizadas
-DB_HOST=localhost DB_PORT=5434 DB_USER=postgres DB_PASSWORD=postgres DB_NAME=mundo_invest go run cmd/server/main.go
+A API fica em `http://localhost:8080`. O Postgres continua exposto na porta `5434` do host, se precisar acessar de fora do Docker.
+
+Logs da API:
+
+```bash
+docker compose logs -f app
+```
+
+### Iniciar o servidor localmente (Go no host)
+
+Requer Postgres rodando (`docker compose up -d postgres`). No `.env`, use `DB_HOST=localhost` e `DB_PORT=5434`:
+
+```bash
+go run cmd/server/main.go
 ```
 
 ### Build do Binário
