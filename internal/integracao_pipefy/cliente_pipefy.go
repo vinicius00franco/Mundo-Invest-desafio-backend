@@ -35,7 +35,7 @@ func NovoPipefyGraphQLClient(apiToken, apiURL string) PipefyGraphQLClient {
 }
 
 // EstruturarMutationCreateCard estrutura a mutation GraphQL para criar card no Pipefy
-// Fonte: https://api-docs.pipefy.com/reference/mutations/#createcard
+// Doc Pipefy (createCard): https://developers.pipefy.com/reference/create-a-card-with-the-required-fields-fulfilled
 func (c *pipefyGraphQLClient) EstruturarMutationCreateCard(pipeID string, fieldsAttributes []FieldAttribute) (string, error) {
 	catalogo := mensagens.ObterCatalogo()
 	// Se pipeID estiver vazio, retorna card ID simulado para ambiente de desenvolvimento
@@ -67,7 +67,7 @@ func (c *pipefyGraphQLClient) EstruturarMutationCreateCard(pipeID string, fields
 }
 
 // EstruturarMutationUpdateCard estrutura a mutation GraphQL para atualizar card no Pipefy
-// Fonte: https://api-docs.pipefy.com/reference/mutations/#updatecard
+// Doc Pipefy (updateCard, updateCardField): https://developers.pipefy.com/reference/cards
 func (c *pipefyGraphQLClient) EstruturarMutationUpdateCard(cardID string, fieldsAttributes []FieldAttribute) (string, error) {
 	catalogo := mensagens.ObterCatalogo()
 	if cardID == "" {

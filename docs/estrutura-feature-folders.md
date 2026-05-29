@@ -95,8 +95,8 @@ O projeto Mundo Invest utiliza a arquitetura de **Feature Folders** organizada p
 - `moveCardToPhase` - Mover card para outra fase
 
 **Referências**:
-- [Pipefy API Documentation - createCard](https://api-docs.pipefy.com/reference/mutations/#createcard)
-- [Pipefy API Documentation - updateCard](https://api-docs.pipefy.com/reference/mutations/#updatecard)
+- [Pipefy — createCard](https://developers.pipefy.com/reference/create-a-card-with-the-required-fields-fulfilled)
+- [Pipefy — cards (updateCard, updateCardField, deleteCard)](https://developers.pipefy.com/reference/cards)
 
 ### 5. Compartilhado (`shared`)
 

@@ -94,9 +94,9 @@ flowchart TB
 
 ## 🚀 Tecnologias Utilizadas
 
-- **Go 1.21+**: Linguagem de programação principal
+- **Go 1.22+**: Linguagem de programação principal
 - **PostgreSQL 15**: Banco de dados relacional
-- **Docker**: Containerização do banco de dados
+- **Docker / Docker Compose**: API e banco em containers (`Dockerfile` + `docker-compose.yml`)
 - **Pipefy API**: Integração para gestão de cards
 - **GraphQL**: Mutations para integração com Pipefy
 
@@ -105,26 +105,16 @@ flowchart TB
 O projeto segue os princípios de **Domain-Driven Design (DDD)** com **Feature Folders**:
 
 ```
+cmd/server/                  # Entrada da aplicação
 internal/
-├── gestao_clientes/          # Contexto: Gestão de Clientes
-│   ├── controller.go        # Camada de apresentação
-│   ├── service.go           # Camada de serviço
-│   ├── repository.go        # Camada de persistência
-│   └── validator.go         # Validação de dados
+├── gestao_clientes/         # Contexto: Gestão de Clientes
 ├── processamento_eventos/   # Contexto: Processamento de Eventos
-│   ├── controller.go        # Camada de apresentação
-│   ├── service.go           # Camada de serviço
-│   ├── repository.go        # Camada de persistência
-│   └── validator.go         # Validação de dados
-├── dominio/                 # Contexto: Domínio Compartilhado
-│   └── prioridade_calculator.go  # Lógica de cálculo de prioridade
-├── integracao_pipefy/       # Contexto: Integração Pipefy
-│   ├── client.go           # Cliente GraphQL
-│   └── mutations.go        # Mutations GraphQL
-└── shared/                  # Contexto: Compartilhado
-    └── database/            # Configuração de banco de dados
-        ├── connection.go    # Conexão com PostgreSQL
-        └── transacao.go     # Gerenciamento de transações
+├── dominio/                 # Domínio compartilhado (ex.: calculadora_prioridade.go)
+├── integracao_pipefy/       # Cliente GraphQL e mutações Pipefy
+├── server/                  # Montagem HTTP e injeção de dependências
+└── shared/                  # config, database, logger, mensagens, errors
+tests/integration/           # Testes com banco real
+migrations_simple/           # SQL aplicado na primeira subida do Postgres
 ```
 
 ## 🏗️ Modelagem de Dados
@@ -144,9 +134,8 @@ O sistema utiliza **linguagem ubíqua** e **trigramação** para nomenclatura de
 
 ## 📦 Pré-requisitos
 
-- Go 1.21 ou superior
+- Go 1.22 ou superior
 - Docker e Docker Compose
-- PostgreSQL 15 (via Docker)
 - Git
 
 ## 🔧 Instalação
@@ -168,17 +157,18 @@ cp .env.example .env
 # Edite .env se necessário (Pipefy, etc.)
 ```
 
-4. **Configure o banco de dados**:
+4. **Suba os serviços** (veja [Execução](#-execução)):
 ```bash
-docker compose up -d
+docker compose up -d --build
 ```
 
-5. **Execute as migrations** (se necessário):
+As migrations em `migrations_simple/` rodam automaticamente na **primeira** criação do volume do Postgres. Se o volume já existir e o schema estiver desatualizado, aplique manualmente:
+
 ```bash
-docker exec postgres_container psql -U postgres -d mundo_invest -f migrations_simple/001_criar_schemas.sql
-docker exec postgres_container psql -U postgres -d mundo_invest -f migrations_simple/002_criar_sequencias.sql
-docker exec postgres_container psql -U postgres -d mundo_invest -f migrations_simple/003_criar_tabela_cliente.sql
-docker exec postgres_container psql -U postgres -d mundo_invest -f migrations_simple/004_criar_tabela_evento.sql
+docker exec -i mundo_invest_postgres psql -U postgres -d mundo_invest < migrations_simple/001_criar_schemas.sql
+docker exec -i mundo_invest_postgres psql -U postgres -d mundo_invest < migrations_simple/002_criar_sequencias.sql
+docker exec -i mundo_invest_postgres psql -U postgres -d mundo_invest < migrations_simple/003_criar_tabela_cliente.sql
+docker exec -i mundo_invest_postgres psql -U postgres -d mundo_invest < migrations_simple/004_criar_tabela_evento.sql
 ```
 
 ## 🎯 Execução
@@ -190,7 +180,14 @@ cp .env.example .env   # se ainda não existir
 docker compose up -d --build
 ```
 
-A API fica em `http://localhost:8080`. O Postgres continua exposto na porta `5434` do host, se precisar acessar de fora do Docker.
+A API fica em `http://localhost:8080` (porta definida por `HTTP_PORT` no `.env`). O Postgres fica exposto na porta `5434` do host (`5432` dentro da rede Docker).
+
+Variáveis no `.env` para este modo:
+
+| Variável   | Valor no Docker Compose |
+|------------|-------------------------|
+| `DB_HOST`  | `postgres`              |
+| `DB_PORT`  | `5432`                  |
 
 Logs da API:
 
@@ -213,7 +210,7 @@ go build -o server cmd/server/main.go
 ./server
 ```
 
-O servidor iniciará na porta 8080 (configurável via variável de ambiente `PORT`).
+O servidor usa a porta definida em `HTTP_PORT` no `.env` (padrão `8080`).
 
 ## 🧪 Executar Testes
 
@@ -231,13 +228,28 @@ go test ./internal/dominio/... -v
 
 ### Testes de Integração
 
-```bash
-# Executar testes de integração (requer banco de dados)
-go test ./internal/shared/database/... -v -tags=integration
+Requer Postgres acessível no host (`docker compose up -d postgres`) e `.env` com `DB_HOST=localhost` e `DB_PORT=5434`:
 
-# Com variáveis de ambiente
-DB_HOST=localhost DB_PORT=5434 DB_USER=postgres DB_PASSWORD=postgres DB_NAME=mundo_invest go test ./internal/shared/database/... -v -tags=integration
+```bash
+go test ./tests/integration/... -v
 ```
+
+### Testes HTTP (scripts `curl`)
+
+Com a API rodando em `http://localhost:8080`, os scripts em `scripts/integration/` executam cenários contra os endpoints e salvam relatórios em `scripts/exports/`:
+
+```bash
+# Sucesso — POST /clientes (HTTP 201)
+./scripts/integration/sucesso/testar_cenarios_sucesso.sh
+
+# Sucesso e regras — POST /webhooks/pipefy/card-updated (HTTP 200, prioridade, idempotência)
+./scripts/integration/webhook/testar_webhook.sh
+
+# Pacote clientes: sucesso + falha + validação
+./scripts/integration/run_all_tests.sh
+```
+
+Cenários descritos em `bdd/criacao-cliente/` e `bdd/webhook-card-updated/`. Detalhes: [scripts/integration/README.md](scripts/integration/README.md).
 
 ### Cobertura de Testes
 
@@ -309,6 +321,66 @@ curl -X POST http://localhost:8080/webhooks/pipefy/card-updated \
 }
 ```
 
+> Para testar o fluxo completo: crie um cliente com `POST /clientes` e use o mesmo `cliente_email` no webhook.
+
+## ☁️ Visão de Produção (AWS)
+
+Evolução natural da stack local (API Go + PostgreSQL + webhooks Pipefy) para nuvem, mantendo o modelo relacional atual (`gestao_clientes` e `processamento_eventos`).
+
+### Componentes sugeridos
+
+| Camada | Serviço AWS | Papel |
+|--------|-------------|--------|
+| Entrada HTTP | **API Gateway** | Expõe `POST /clientes` e `POST /webhooks/pipefy/card-updated`; throttling, WAF e autenticação (API key ou JWT) na borda |
+| Aplicação | **Lambda** (Go) ou **ECS Fargate** | Executa o mesmo binário do `cmd/server`; Lambda com `provided.al2023` para cargas eventuais; Fargate se preferir processo long-lived |
+| Banco | **Amazon RDS (PostgreSQL)** | Substitui o Postgres do Docker; schemas, migrations e índice único em `event_id` para idempotência do webhook |
+| Segredos | **Secrets Manager** | `PIPEFY_API_TOKEN`, credenciais RDS; injetados via variáveis de ambiente na Lambda/task |
+| Observabilidade | **CloudWatch** | Logs estruturados, métricas (latência, 4xx/5xx), alarmes |
+
+### Fluxo `POST /clientes`
+
+1. Cliente → **API Gateway** → **Lambda/Fargate** (handler de criação).
+2. Serviço valida payload, persiste em **RDS** (`gestao_clientes.cliente`, status *Aguardando Análise*).
+3. Integração Pipefy: mutation `createCard` (hoje simulada; em produção, chamada HTTPS à API GraphQL do Pipefy com token do Secrets Manager).
+4. Atualiza `identificador_externo` com o `card_id` retornado.
+
+Escala horizontal: várias instâncias Lambda ou tasks ECS atrás do API Gateway; RDS com leitura opcional em **Read Replica** se a consulta por e-mail crescer.
+
+### Fluxo webhook `POST /webhooks/pipefy/card-updated`
+
+**Opção A — síncrono (volume baixo):** API Gateway → mesma Lambda → verifica `event_id` no RDS → calcula prioridade → atualiza cliente → mutation `updateCard` no Pipefy → grava evento processado.
+
+**Opção B — assíncrono (picos / resilência):**
+
+1. API Gateway recebe o webhook e enfileira em **Amazon SQS** (resposta 202 rápida ao Pipefy).
+2. **Lambda consumidora** processa a fila com retry e DLQ.
+3. Idempotência: `SELECT`/constraint em `processamento_eventos.evento` por `identificador_evento` antes de reprocessar.
+4. Atualização de cliente e Pipefy no worker; falhas vão para DLQ para reprocessamento manual.
+
+Isso desacopla picos do Pipefy do tempo de resposta da API e evita timeout no webhook.
+
+### Por que RDS e não DynamoDB no núcleo
+
+O projeto já modela **relacionamentos** (cliente por e-mail, evento por `event_id`, transações). **RDS PostgreSQL** preserva SQL, schemas delimitados e migrations existentes. **DynamoDB** faria sentido como complemento (ex.: cache de idempotência ou fila de eventos já coberta por SQS), não como substituto direto das tabelas atuais sem reescrever o domínio.
+
+### Resumo
+
+```
+                    ┌─────────────┐
+  Pipefy / Cliente  │ API Gateway │
+                    └──────┬──────┘
+                           │
+              ┌────────────┴────────────┐
+              ▼                         ▼
+        Lambda/ECS (API)          SQS (opcional)
+              │                         │
+              ▼                         ▼
+         RDS PostgreSQL          Lambda worker
+    gestao_clientes +                  │
+    processamento_eventos            ▼
+                              RDS + Pipefy API
+```
+
 ## 🎲 Regras de Negócio
 
 ### Cálculo de Prioridade
@@ -344,13 +416,7 @@ Todas as operações são auditadas na tabela `auditoria.auditoria_clientes`.
 
 ## 📊 Monitoramento e Backup
 
-### Backup Automático
-
-O sistema possui scripts de backup automático configurados no Docker Compose.
-
-### Snapshot do Banco de Dados
-
-Snapshots são criados regularmente para recuperação de desastres.
+Estratégia de backup e snapshot está documentada em [docs/snapshot-banco-dados.md](docs/snapshot-banco-dados.md) e [docs/modelagem-dados.md](docs/modelagem-dados.md) (não há serviço de backup no `docker-compose.yml` atual).
 
 ## 🧹 Limpeza
 
@@ -361,10 +427,10 @@ Snapshots são criados regularmente para recuperação de desastres.
 Ctrl+C
 
 # Parar Docker Compose
-docker-compose down
+docker compose down
 
 # Parar e remover volumes
-docker-compose down -v
+docker compose down -v
 ```
 
 ## 🐛 Troubleshooting
@@ -372,37 +438,37 @@ docker-compose down -v
 ### Erro de Conexão com Banco de Dados
 
 ```bash
-# Verificar se o container está rodando
-docker ps
+# Verificar se os containers estão rodando
+docker compose ps
 
-# Verificar logs do container
-docker logs postgres_container
+# Logs
+docker compose logs postgres
+docker compose logs app
 
-# Reiniciar o container
-docker-compose restart
+# Reiniciar
+docker compose restart
 ```
+
+Confira o `.env`: com a API no Docker, `DB_HOST` deve ser `postgres` e `DB_PORT` `5432`; com `go run` no host, `localhost` e `5434`.
 
 ### Erro de Porta
 
 ```bash
-# Verificar qual processo está usando a porta 8080
+# Verificar qual processo está usando a porta (padrão 8080)
 lsof -i :8080
 
-# Mudar a porta do servidor
-PORT=8081 go run cmd/server/main.go
+# Alterar no .env
+HTTP_PORT=8081
 ```
 
 ### Erro de Testes
 
 ```bash
-# Verificar se o banco de dados de teste está configurado
-docker-compose up -d
+docker compose up -d postgres
+# .env: DB_HOST=localhost, DB_PORT=5434
 
-# Executar testes com verbose
-go test ./... -v
-
-# Executar testes específicos
-go test ./internal/gestao_clientes/... -v -run TestCriarClienteHandler
+go test ./... -v -short
+go test ./tests/integration/... -v
 ```
 
 ## 📚 Documentação Adicional
@@ -438,4 +504,4 @@ Para suporte, entre em contato com a equipe de desenvolvimento.
 ---
 
 **Versão**: 1.0.0  
-**Última Atualização**: 27/05/2026
+**Última Atualização**: 29/05/2026

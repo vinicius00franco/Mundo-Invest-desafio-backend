@@ -17,7 +17,7 @@ func NovoMutacoes(cliente PipefyGraphQLClient) *Mutacoes {
 }
 
 // CreateCardMutation cria a mutation para criar um card no Pipefy
-// Fonte: https://api-docs.pipefy.com/reference/mutations/#createcard
+// Doc Pipefy (createCard): https://developers.pipefy.com/reference/create-a-card-with-the-required-fields-fulfilled
 // NOTA: FieldIDs são identificadores de campos do Pipefy e devem ser configurados conforme o setup do pipe
 func (m *Mutacoes) CreateCardMutation(pipeID string, nome, email, tipoSolicitacao string, valorPatrimonio float64) (string, error) {
 	atributosCampo := []FieldAttribute{
@@ -43,7 +43,7 @@ func (m *Mutacoes) CreateCardMutation(pipeID string, nome, email, tipoSolicitaca
 }
 
 // UpdateCardMutation cria a mutation para atualizar um card no Pipefy
-// Fonte: https://api-docs.pipefy.com/reference/mutations/#updatecard
+// Doc Pipefy (updateCard, updateCardField): https://developers.pipefy.com/reference/cards
 // NOTA: FieldIDs são identificadores de campos do Pipefy e devem ser configurados conforme o setup do pipe
 func (m *Mutacoes) UpdateCardMutation(cardID string, nivelPrioridade string) (string, error) {
 	atributosCampo := []FieldAttribute{
@@ -85,7 +85,7 @@ func (m *Mutacoes) UpdateCardMutationComCamposPersonalizados(cardID string, camp
 }
 
 // AddCardRelationMutation cria uma mutation para adicionar uma relação entre cards
-// Fonte: https://api-docs.pipefy.com/reference/mutations/#addcardrelation
+// Doc Pipefy (cards conectados / throughConnectors): https://developers.pipefy.com/reference/create-connected-cards
 func (m *Mutacoes) AddCardRelationMutation(sourceCardID, destinationCardID, relationTypeID string) (string, error) {
 	mutation := fmt.Sprintf(`mutation {
 			addCardRelation(input: {
@@ -101,7 +101,7 @@ func (m *Mutacoes) AddCardRelationMutation(sourceCardID, destinationCardID, rela
 }
 
 // DeleteCardMutation cria uma mutation para deletar um card
-// Fonte: https://api-docs.pipefy.com/reference/mutations/#deletecard
+// Doc Pipefy (deleteCard): https://developers.pipefy.com/reference/cards
 func (m *Mutacoes) DeleteCardMutation(cardID string) (string, error) {
 	mutation := fmt.Sprintf(`mutation {
 			deleteCard(input: {
@@ -115,7 +115,7 @@ func (m *Mutacoes) DeleteCardMutation(cardID string) (string, error) {
 }
 
 // MoveCardToPhaseMutation cria uma mutation para mover um card para outra fase
-// Fonte: https://api-docs.pipefy.com/reference/mutations/#movecardtophase
+// Doc Pipefy (moveCardToPhase): https://developers.pipefy.com/reference/move-card-to-a-different-phase
 func (m *Mutacoes) MoveCardToPhaseMutation(cardID, phaseID string) (string, error) {
 	mutation := fmt.Sprintf(`mutation {
 			moveCardToPhase(input: {

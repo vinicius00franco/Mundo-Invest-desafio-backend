@@ -1,0 +1,34 @@
+========================================
+TESTES DE CENÁRIOS DE SUCESSO
+Data: sex 29 mai 2026 10:26:22 -03
+========================================
+
+=== CENÁRIO 1: Criar cliente com dados válidos ===
+Descrição: Criar um novo cliente com todos os campos obrigatórios preenchidos corretamente
+
+Payload enviado:
+{
+  "cliente_nome": "João Silva",
+  "cliente_email": "joao.silva.20260529_102622@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 250000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 500
+Resposta JSON:
+{
+  "erro": "erro no serviço 'ClienteService': erro ao salvar cliente: erro no repositório durante operação 'salvar cliente': dial tcp 127.0.0.1:5434: connect: connection refused"
+}
+
+Verificações:
+✗ HTTP 500 - FALHOU (esperado 201)
+✗ Campo identificador_interno ausente - FALHOU
+✗ Campo identificador_externo ausente - FALHOU
+✗ Campo status ausente - FALHOU
+
+========================================
+FIM DOS TESTES DE SUCESSO
+Resultado salvo em: /home/vinicius/Downloads/desafios/MundoInvest/scripts/integration/sucesso/../../exports/cenarios_sucesso_20260529_102622.txt
+========================================

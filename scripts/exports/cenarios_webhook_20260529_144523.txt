@@ -1,0 +1,170 @@
+========================================
+TESTES DE CENÁRIOS DE WEBHOOK
+Data: sex 29 mai 2026 14:45:23 -03
+========================================
+
+=== CENÁRIO 1: Processar webhook com cliente de prioridade alta ===
+Descrição: Processar webhook para cliente com patrimônio >= 200.000
+
+Payload enviado:
+{
+  "event_id": "evt_prioridade_alta_001",
+  "card_id": "card_123",
+  "cliente_email": "maria.santos@example.com",
+  "timestamp": "2026-05-27T10:00:00Z"
+}
+
+Requisição: POST http://localhost:8080/webhooks/pipefy/card-updated
+
+Código HTTP: 404
+Resposta JSON:
+Cliente não encontrado
+
+Verificações:
+✗ HTTP 404 - FALHOU (esperado 200)
+
+=== CENÁRIO 2: Processar webhook com cliente de prioridade normal ===
+Descrição: Processar webhook para cliente com patrimônio < 200.000
+
+Payload enviado:
+{
+  "event_id": "evt_prioridade_normal_001",
+  "card_id": "card_456",
+  "cliente_email": "joao.silva@example.com",
+  "timestamp": "2026-05-27T10:00:00Z"
+}
+
+Requisição: POST http://localhost:8080/webhooks/pipefy/card-updated
+
+Código HTTP: 200
+Resposta JSON:
+{
+  "card_id": "card_456",
+  "cliente_email": "joao.silva@example.com",
+  "event_id": "evt_prioridade_normal_001",
+  "mensagem": "Webhook processado com sucesso"
+}
+
+Verificações:
+✓ HTTP 200 - PASSOU
+
+=== CENÁRIO 3: Processar webhook com cliente não encontrado ===
+Descrição: Tentar processar webhook para cliente que não existe no banco
+
+Payload enviado:
+{
+  "event_id": "evt_cliente_inexistente",
+  "card_id": "card_789",
+  "cliente_email": "nao.existe@example.com",
+  "timestamp": "2026-05-27T10:00:00Z"
+}
+
+Requisição: POST http://localhost:8080/webhooks/pipefy/card-updated
+
+Código HTTP: 404
+Resposta JSON:
+Cliente não encontrado
+
+Verificações:
+✗ HTTP 404 - FALHOU (esperado 500)
+
+=== CENÁRIO 4: Processar webhook duplicado (idempotência) ===
+Descrição: Tentar processar o mesmo evento novamente para testar idempotência
+
+Payload enviado:
+{
+  "event_id": "evt_prioridade_alta_001",
+  "card_id": "card_123",
+  "cliente_email": "maria.santos@example.com",
+  "timestamp": "2026-05-27T10:00:00Z"
+}
+
+Requisição: POST http://localhost:8080/webhooks/pipefy/card-updated
+
+Código HTTP: 404
+Resposta JSON:
+Cliente não encontrado
+
+Verificações:
+✗ HTTP 404 - FALHOU (esperado 200)
+
+=== CENÁRIO 5: Processar webhook sem event_id ===
+Descrição: Tentar processar webhook sem fornecer event_id
+
+Payload enviado:
+{
+  "card_id": "card_999",
+  "cliente_email": "teste@example.com",
+  "timestamp": "2026-05-27T10:00:00Z"
+}
+
+Requisição: POST http://localhost:8080/webhooks/pipefy/card-updated
+
+Código HTTP: 400
+Resposta JSON:
+event_id é obrigatório
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 6: Processar webhook sem card_id ===
+Descrição: Tentar processar webhook sem fornecer card_id
+
+Payload enviado:
+{
+  "event_id": "evt_sem_card",
+  "cliente_email": "teste@example.com",
+  "timestamp": "2026-05-27T10:00:00Z"
+}
+
+Requisição: POST http://localhost:8080/webhooks/pipefy/card-updated
+
+Código HTTP: 400
+Resposta JSON:
+card_id é obrigatório
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 7: Processar webhook sem cliente_email ===
+Descrição: Tentar processar webhook sem fornecer cliente_email
+
+Payload enviado:
+{
+  "event_id": "evt_sem_email",
+  "card_id": "card_999",
+  "timestamp": "2026-05-27T10:00:00Z"
+}
+
+Requisição: POST http://localhost:8080/webhooks/pipefy/card-updated
+
+Código HTTP: 400
+Resposta JSON:
+cliente_email é obrigatório
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+=== CENÁRIO 8: Processar webhook sem timestamp ===
+Descrição: Tentar processar webhook sem fornecer timestamp
+
+Payload enviado:
+{
+  "event_id": "evt_sem_timestamp",
+  "card_id": "card_999",
+  "cliente_email": "teste@example.com"
+}
+
+Requisição: POST http://localhost:8080/webhooks/pipefy/card-updated
+
+Código HTTP: 400
+Resposta JSON:
+timestamp é obrigatório
+
+Verificações:
+✓ HTTP 400 - PASSOU
+
+========================================
+FIM DOS TESTES DE WEBHOOK
+Resultado salvo em: /home/vinicius/Downloads/desafios/MundoInvest/scripts/integration/webhook/../../exports/cenarios_webhook_20260529_144523.txt
+========================================

@@ -1,0 +1,43 @@
+========================================
+TESTES DE CENÁRIOS DE SUCESSO
+Data: sex 29 mai 2026 14:45:12 -03
+========================================
+
+=== CENÁRIO 1: Criar cliente com dados válidos ===
+Descrição: Criar um novo cliente com todos os campos obrigatórios preenchidos corretamente
+
+Payload enviado:
+{
+  "cliente_nome": "João Silva",
+  "cliente_email": "joao.silva.20260529_144512@example.com",
+  "tipo_solicitacao": "Atualização cadastral",
+  "valor_patrimonio": 250000
+}
+
+Requisição: POST http://localhost:8080/clientes
+
+Código HTTP: 201
+Resposta JSON:
+{
+  "mensagem": "Cliente criado com sucesso",
+  "identificador_interno": 8,
+  "identificador_externo": "card_1780076712",
+  "cliente_nome": "João Silva",
+  "cliente_email": "joao.silva.20260529_144512@example.com",
+  "valor_patrimonio": 250000,
+  "tipo_solicitacao": "Atualização cadastral",
+  "status": "Aguardando Análise",
+  "data_criacao": "2026-05-29T17:45:12.802036Z"
+}
+
+Verificações:
+✓ HTTP 201 Created - PASSOU
+✓ Campo identificador_interno presente - PASSOU
+✓ Campo identificador_externo (card_id) presente - PASSOU
+✓ Campo status presente: Aguardando Análise
+✓ Status é 'Aguardando Análise' - PASSOU
+
+========================================
+FIM DOS TESTES DE SUCESSO
+Resultado salvo em: /home/vinicius/Downloads/desafios/MundoInvest/scripts/integration/sucesso/../../exports/cenarios_sucesso_20260529_144512.txt
+========================================
